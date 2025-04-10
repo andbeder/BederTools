@@ -17,7 +17,7 @@ public class Vegetation {
      *                    Higher values make a longer gradient falloff.
      * @return A BufferedImage representing an ARGB vegetation mask.
      */
-    public static BufferedImage generateVegetation(int res, double size, double regularity, int spread) {
+    public static BufferedImage generateVegetation(int res, double size, double regularity, int spread, Random rand) {
         BufferedImage img = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
         int background = 0xFFFFFFFF;  // white
         int vegColor = 0xFF006600;    // dark green
@@ -27,11 +27,7 @@ public class Vegetation {
             for (int x = 0; x < res; x++) {
                 img.setRGB(x, y, background);
             }
-        }
-
-        Random rand = new Random();
-
-        
+        }        
         
         // Determine number of major clumps (1 or 2).
         int numMajor = rand.nextInt(2) + 1;

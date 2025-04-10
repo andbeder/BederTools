@@ -19,8 +19,7 @@ public class Voronoi {
      * @param numPoints The number of random seed points.
      * @return A BufferedImage containing the torus-wrapped Voronoi noise pattern.
      */
-    public static BufferedImage generateVoronoi(int res, int numPoints) {
-        Random rand = new Random();
+    public static BufferedImage generateVoronoi(int res, int numPoints, Random rand) {
         List<Coordinate> seedCoords = new ArrayList<>();
         Map<Coordinate, VoronoiNode> coordToNode = new HashMap<>();
 

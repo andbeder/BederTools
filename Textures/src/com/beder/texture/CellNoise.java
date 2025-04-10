@@ -11,8 +11,8 @@ import org.locationtech.jts.triangulate.DelaunayTriangulationBuilder;
 public class CellNoise {
 
     // Public method to generate a cell noise image.
-    public static BufferedImage generateCellNoise(int res, int cells, double mix) {
-        int[][] noise = generateNoise(res, cells, mix);
+    public static BufferedImage generateCellNoise(int res, int cells, double mix, Random rand) {
+        int[][] noise = generateNoise(res, cells, mix, rand);
         BufferedImage img = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < res; y++) {
             for (int x = 0; x < res; x++) {
@@ -30,8 +30,7 @@ public class CellNoise {
         return img;
     }
     
-    private static int[][] generateNoise(int res, int cells, double mix) {
-        Random rand = new Random();
+    private static int[][] generateNoise(int res, int cells, double mix, Random rand) {
         float cellWidth = (float) res / cells;
         List<Coordinate> seedCoords = new ArrayList<>();
         Map<Coordinate, Node> coordToNode = new HashMap<>();

@@ -257,47 +257,166 @@ public class TextureGenius extends JFrame {
                 long seed = Long.parseLong(seedField.getText());
                 String alg = (String) algorithmComboBox.getSelectedItem();
                 Operations.Operation op = null;
+
                 if ("Cell Noise".equals(alg)) {
                     int cells = Integer.parseInt(frequencyField.getText());
                     int gauss = gaussianSlider.getValue();
-                    double gaussMix = Math.max(0, Math.min(gauss, 100)) / 100.0;
-                    currentImage = CellNoise.generateCellNoise(res, cells, gaussMix);
+                    // We'll store a CellNoiseOperation in the stack
                     op = new Operations.CellNoiseOperation(res, seed, cells, gauss);
+                    // And apply it immediately to see the result
+                    currentImage = op.apply(null);
+
                 } else if ("Vegetation".equals(alg)) {
                     double size = Double.parseDouble(sizeField.getText());
                     double reg = Double.parseDouble(regularityField.getText());
-                    int spread = Integer.parseInt(spreadSlider.getValue() + "");
-                    currentImage = Vegetation.generateVegetation(res, size, reg, spread);
+                    int spread = spreadSlider.getValue();
                     op = new Operations.VegetationOperation(res, seed, size, reg, spread);
+                    currentImage = op.apply(null);
+
                 } else if ("Voronoi".equals(alg)) {
                     int points = Integer.parseInt(pointsField.getText());
-                    currentImage = Voronoi.generateVoronoi(res, points);
                     op = new Operations.VoronoiOperation(res, seed, points);
+                    currentImage = op.apply(null);
+
                 } else if ("Simplex".equals(alg)) {
                     double scale = Double.parseDouble(simplexScaleField.getText());
-                    currentImage = Simplex.generateSimplexNoise(res, scale);
                     op = new Operations.SimplexOperation(res, seed, scale);
+                    currentImage = op.apply(null);
+
                 } else if ("Perlin".equals(alg)) {
                     double freq = Double.parseDouble(perlinFreqField.getText());
                     int iterations = Integer.parseInt(perlinIterField.getText());
-                    currentImage = Perlin.generatePerlinNoise(res, freq, iterations);
                     op = new Operations.PerlinOperation(res, seed, freq, iterations);
+                    currentImage = op.apply(null);
                 }
-                Image scaledLeft = currentImage.getScaledInstance(512, 512, Image.SCALE_SMOOTH);
-                leftImageLabel.setIcon(new ImageIcon(scaledLeft));
-                leftImageLabel.setPreferredSize(new Dimension(512, 512));
+
+                // Display the newly generated texture on the left
+                if (currentImage != null) {
+                    Image scaledLeft = currentImage.getScaledInstance(512, 512, Image.SCALE_SMOOTH);
+                    leftImageLabel.setIcon(new ImageIcon(scaledLeft));
+                }
+
                 if (op != null) {
                     opStack.add(op);
                     addOperationPanel(op);
                 }
+
                 pack();
+
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this,
-                        "Please enter valid numeric values in the controls.",
-                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                    "Please enter valid numeric values in the controls.",
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         
+
+        // Copy button: record a new CopyOperation
+        copyButton.addActionListener(e -> {
+            if (currentImage == null) {
+                JOptionPane.showMessageDialog(this,
+                    "No image on the left to copy. Generate first!",
+                    "Copy Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            Operations.CopyOperation op = new Operations.CopyOperation(currentImage);
+            // Apply it immediately to the right image
+            rightImage = op.apply(rightImage);
+            // Display the updated right image
+            displayRightImage(rightImage);
+            opStack.add(op);
+            addOperationPanel(op);
+        });
+
+        // Mix button: record a new MixOperation
+        mixButton.addActionListener(e -> {
+            if (currentImage == null || rightImage == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Both left and right images must exist before mixing.",
+                    "Mix Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String input = JOptionPane.showInputDialog(this, "Enter mix percentage (0-100):",
+                "Mix", JOptionPane.PLAIN_MESSAGE);
+            if (input != null) {
+                try {
+                    double mixPercent = Double.parseDouble(input);
+                    if (mixPercent < 0 || mixPercent > 100) {
+                        throw new NumberFormatException("Range");
+                    }
+                    double fraction = mixPercent / 100.0;
+                    // The mix operation needs the "other" image as well.
+                    Operations.MixOperation op = new Operations.MixOperation(currentImage, fraction);
+                    rightImage = op.apply(rightImage);
+                    displayRightImage(rightImage);
+                    opStack.add(op);
+                    addOperationPanel(op);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Please enter a valid number between 0 and 100.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Blur button: record a new BlurOperation
+        blurButton.addActionListener(e -> {
+            if (rightImage == null) {
+                JOptionPane.showMessageDialog(this,
+                    "No image on the right to blur. Copy or mix first!",
+                    "Blur Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String input = JOptionPane.showInputDialog(this, "Enter blur radius (pixels):",
+                "Blur", JOptionPane.PLAIN_MESSAGE);
+            if (input != null) {
+                try {
+                    int radius = Integer.parseInt(input);
+                    if (radius < 1) {
+                        throw new NumberFormatException("radius < 1");
+                    }
+                    Operations.BlurOperation op = new Operations.BlurOperation(radius);
+                    rightImage = op.apply(rightImage);
+                    displayRightImage(rightImage);
+                    opStack.add(op);
+                    addOperationPanel(op);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Please enter a valid integer >= 1.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Level button: record a new LevelOperation
+        levelButton.addActionListener(e -> {
+            if (rightImage == null) {
+                JOptionPane.showMessageDialog(this,
+                    "No image on the right to level. Copy or mix first!",
+                    "Level Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String input = JOptionPane.showInputDialog(this, "Enter threshold (0-255):",
+                "Level", JOptionPane.PLAIN_MESSAGE);
+            if (input != null) {
+                try {
+                    int thresh = Integer.parseInt(input);
+                    if (thresh < 0 || thresh > 255) {
+                        throw new NumberFormatException("threshold out of range");
+                    }
+                    Operations.LevelOperation op = new Operations.LevelOperation(thresh);
+                    rightImage = op.apply(rightImage);
+                    displayRightImage(rightImage);
+                    opStack.add(op);
+                    addOperationPanel(op);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Please enter a valid integer between 0 and 255.",
+                        "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         saveButton.addActionListener(e -> {
             if (rightImage == null) {
                 JOptionPane.showMessageDialog(this,
@@ -420,7 +539,7 @@ public class TextureGenius extends JFrame {
             int cells = Integer.parseInt(frequencyField.getText());
             int gauss = gaussianSlider.getValue();
             double mixVal = Math.max(0, Math.min(gauss, 100)) / 100.0;
-            currentImage = CellNoise.generateCellNoise(res, cells, mixVal);
+            currentImage = CellNoise.generateCellNoise(res, cells, mixVal, new Random());
             Image scaled = currentImage.getScaledInstance(512, 512, Image.SCALE_SMOOTH);
             leftImageLabel.setIcon(new ImageIcon(scaled));
             leftImageLabel.setPreferredSize(new Dimension(512, 512));
@@ -561,16 +680,7 @@ public class TextureGenius extends JFrame {
         }
     }
     
-    /**
-     * Adds an OperationPanel for the given operation to the operations stack panel.
-     */
-    private void addOperationPanel(Operations.Operation op) {
-        OperationPanel opPanel = new OperationPanel(op);
-        operationsStackPanel.add(opPanel);
-        operationsStackPanel.revalidate();
-        operationsStackPanel.repaint();
-    }
-    
+
     /**
      * Applies all operations in the stack sequentially, starting with the left image.
      * The final result is displayed in the right image panel.
@@ -595,26 +705,7 @@ public class TextureGenius extends JFrame {
     /**
      * Inner class OperationPanel: displays the operation's details and a Delete button.
      */
-    private class OperationPanel extends JPanel {
-        private Operations.Operation op;
-        private JLabel descriptionLabel;
-        private JButton deleteButton;
-        
-        public OperationPanel(Operations.Operation op) {
-            this.op = op;
-            setLayout(new BorderLayout());
-            descriptionLabel = new JLabel(op.getDescription());
-            add(descriptionLabel, BorderLayout.CENTER);
-            deleteButton = new JButton("Delete");
-            deleteButton.addActionListener(e -> {
-                opStack.remove(op);
-                operationsStackPanel.remove(this);
-                operationsStackPanel.revalidate();
-                operationsStackPanel.repaint();
-            });
-            add(deleteButton, BorderLayout.EAST);
-        }
-    }
+
     
     // --- Gaussian Blur Implementation (unchanged) ---
     public static BufferedImage gaussianBlur(BufferedImage src, int radius) {
@@ -690,6 +781,40 @@ public class TextureGenius extends JFrame {
         }
         return dst;
     }
+    /**
+     * Helper to show the new right image in the UI.
+     */
+    private void displayRightImage(BufferedImage img) {
+        if (img == null) return;
+        Image scaled = img.getScaledInstance(512, 512, Image.SCALE_SMOOTH);
+        rightImageLabel.setIcon(new ImageIcon(scaled));
+        pack();
+    }
+
+    /**
+     * Adds a panel for the newly created operation to the operations stack UI.
+     */
+    private void addOperationPanel(Operations.Operation op) {
+        final OperationPanel[] holder = new OperationPanel[1];
+        holder[0] = new OperationPanel(op, () -> {
+            // Called on "Edit" in the operation panel
+            // You might open a dialog to let the user modify parameters.
+            // For now, just a placeholder:
+            JOptionPane.showMessageDialog(this,
+                "Edit functionality not yet implemented for: " + op.getDescription());
+        }, () -> {
+            // Called on "Delete" in the operation panel
+            opStack.remove(op);
+            operationsStackPanel.remove(holder[0]);
+            operationsStackPanel.revalidate();
+            operationsStackPanel.repaint();
+        });
+        operationsStackPanel.add(holder[0]);
+        operationsStackPanel.revalidate();
+        operationsStackPanel.repaint();
+    }
+   
+    
     
     public static void main(String[] args) {
         int defaultRes = 1024, defaultCells = 8;
