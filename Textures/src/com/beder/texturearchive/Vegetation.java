@@ -1,4 +1,4 @@
-package com.beder.texture;
+package com.beder.texturearchive;
 
 import java.awt.image.BufferedImage;
 import java.awt.Color;

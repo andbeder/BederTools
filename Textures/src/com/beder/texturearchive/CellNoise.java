@@ -1,4 +1,4 @@
-package com.beder.texture;
+package com.beder.texturearchive;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -72,7 +72,7 @@ public class CellNoise {
         }
         
         List<Node> nodes = new ArrayList<>(coordToNode.values());
-        TextureGenius.haltRequested = false;
+        TextureGeniusOld.haltRequested = false;
         boolean success = colorGraphBacktracking(nodes);
         if (!success) {
             System.out.println("❌ Could not find valid 4-coloring.");
@@ -104,7 +104,7 @@ public class CellNoise {
     }
     
     private static boolean backtrack(List<Node> nodes) {
-        if (TextureGenius.haltRequested) return false;
+        if (TextureGeniusOld.haltRequested) return false;
         boolean complete = true;
         for (Node node : nodes) {
             if (node.color == -1) { complete = false; break; }

@@ -1,4 +1,4 @@
-package com.beder.texture;
+package com.beder.texturearchive;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -11,7 +11,7 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-public class TextureGenius extends JFrame {
+public class TextureGeniusOld extends JFrame {
 
     // Top controls
     private JTextField resolutionField;
@@ -75,7 +75,7 @@ public class TextureGenius extends JFrame {
     // Halt flag.
     public static volatile boolean haltRequested = false;
 
-    public TextureGenius(int defaultRes, int defaultCells) {
+    public TextureGeniusOld(int defaultRes, int defaultCells) {
         super("Texture Genius");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -492,35 +492,6 @@ public class TextureGenius extends JFrame {
             pack();
         });
         
-        mixButton.addActionListener(e -> {
-            if (currentImage == null || rightImage == null) {
-                JOptionPane.showMessageDialog(this,
-                        "Both left and right images must be available. Please generate and copy first.",
-                        "Mix Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String input = JOptionPane.showInputDialog(this, "Enter mix percentage (0-100):",
-                    "Mix", JOptionPane.PLAIN_MESSAGE);
-            if (input != null) {
-                try {
-                    double mixPercent = Double.parseDouble(input);
-                    if (mixPercent < 0 || mixPercent > 100) {
-                        JOptionPane.showMessageDialog(this,
-                                "Mix percentage must be between 0 and 100.",
-                                "Mix Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    rightImage = mixImages(currentImage, rightImage, mixPercent / 100.0);
-                    Image scaled = rightImage.getScaledInstance(512, 512, Image.SCALE_SMOOTH);
-                    rightImageLabel.setIcon(new ImageIcon(scaled));
-                    pack();
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this,
-                            "Please enter a valid number for mix percentage.",
-                            "Input Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
         
         levelButton.addActionListener(e -> {
             if (rightImage == null) {
@@ -639,7 +610,7 @@ public class TextureGenius extends JFrame {
             super("Level");
             setLayout(new BorderLayout());
             setSize(600, 600);
-            setLocationRelativeTo(TextureGenius.this);
+            setLocationRelativeTo(TextureGeniusOld.this);
             
             previewLabel = new JLabel(new ImageIcon(baseImage.getScaledInstance(512, 512, Image.SCALE_SMOOTH)));
             previewLabel.setPreferredSize(new Dimension(512, 512));
@@ -693,6 +664,7 @@ public class TextureGenius extends JFrame {
             return;
         }
         BufferedImage result = copyImage(currentImage);
+        //BufferedImage result = new BufferedImage();
         for (Operations.Operation op : opStack) {
             result = op.apply(result);
         }
@@ -829,6 +801,6 @@ public class TextureGenius extends JFrame {
             System.out.println("Invalid cell count argument. Using default: 8.");
         }
         final int finalRes = defaultRes, finalCells = defaultCells;
-        SwingUtilities.invokeLater(() -> new TextureGenius(finalRes, finalCells));
+        SwingUtilities.invokeLater(() -> new TextureGeniusOld(finalRes, finalCells));
     }
 }

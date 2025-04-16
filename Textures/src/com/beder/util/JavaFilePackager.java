@@ -1,4 +1,6 @@
 package com.beder.util;
+import javax.swing.JFileChooser;
+import javax.swing.UIManager;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,49 +9,36 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class JavaFilePackager {
 
     public static void main(String[] args) {
-        List<String> inputPaths = new ArrayList<>();
-        String outputPath = null;
-
-        if (args.length == 0) {
-            // No arguments provided: prompt the user interactively
-            Scanner scanner = new Scanner(System.in);
-            
-            System.out.print("Enter input file/folder paths (separated by commas): ");
-            String input = scanner.nextLine();
-            String[] parts = input.split(",");
-            for (String part : parts) {
-                if (!part.trim().isEmpty()) {
-                    inputPaths.add(part.trim());
-                }
-            }
-            
-            System.out.print("Enter output file path (with .txt extension): ");
-            outputPath = scanner.nextLine().trim();
-            
-            scanner.close();
-        } else {
-            // Arguments provided: first argument is output file, the rest are input paths
-            if (args.length < 2) {
-                System.out.println("Usage: java JavaFilePackager <output_file_path> <input_path1> [<input_path2> ...]");
-                System.exit(1);
-            }
-            outputPath = args[0];
-            for (int i = 1; i < args.length; i++) {
-                inputPaths.add(args[i]);
-            }
+        // Set system look and feel for better integration with the OS
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            // Fall back to default look and feel
+            e.printStackTrace();
         }
-
-        // Gather all .java files from the given input paths
+        
+        // Open dialog to select one or more files and/or directories
+        JFileChooser openChooser = new JFileChooser();
+        openChooser.setDialogTitle("Select Files and/or Folders");
+        openChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        openChooser.setMultiSelectionEnabled(true);
+        
+        int openResult = openChooser.showOpenDialog(null);
+        if (openResult != JFileChooser.APPROVE_OPTION) {
+            System.out.println("No files or folders selected.");
+            System.exit(0);
+        }
+        File[] selectedFiles = openChooser.getSelectedFiles();
+        
+        // Collect all .java files from the selected files/folders
         List<File> javaFiles = new ArrayList<>();
-        for (String path : inputPaths) {
-            File file = new File(path);
+        for (File file : selectedFiles) {
             if (!file.exists()) {
-                System.out.println("Path does not exist: " + path);
+                System.out.println("Path does not exist: " + file.getAbsolutePath());
                 continue;
             }
             if (file.isFile()) {
@@ -61,8 +50,19 @@ public class JavaFilePackager {
             }
         }
         
-        // Write the gathered Java files into the output .txt file with Markdown formatting
-        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath))) {
+        // Open dialog to select where to save the packaged .txt file
+        JFileChooser saveChooser = new JFileChooser();
+        saveChooser.setDialogTitle("Save Packaged File");
+        saveChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int saveResult = saveChooser.showSaveDialog(null);
+        if (saveResult != JFileChooser.APPROVE_OPTION) {
+            System.out.println("No output file selected.");
+            System.exit(0);
+        }
+        File outputFile = saveChooser.getSelectedFile();
+        
+        // Write the gathered Java files to the chosen output file in Markdown format
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
             for (File javaFile : javaFiles) {
                 writer.println("**File: " + javaFile.getAbsolutePath() + "**");
                 writer.println("```java");
@@ -72,17 +72,18 @@ public class JavaFilePackager {
                 for (String line : lines) {
                     writer.println(line);
                 }
-                writer.println("```");  // Closing Markdown code block
+                writer.println("```");  // End of code block
                 writer.println();       // Blank line between files
             }
-            System.out.println("Packaged " + javaFiles.size() + " .java file(s) into " + outputPath);
+            System.out.println("Packaged " + javaFiles.size() + " .java file(s) into " + outputFile.getAbsolutePath());
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
     }
     
     /**
-     * Recursively traverse directories to gather all .java files.
+     * Recursively traverses directories to gather all .java files.
+     * 
      * @param dir The directory to search.
      * @param javaFiles The list that accumulates found Java files.
      */
