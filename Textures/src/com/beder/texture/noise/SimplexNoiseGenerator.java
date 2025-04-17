@@ -14,6 +14,8 @@ import javax.swing.JTextField;
 import com.beder.texture.ImagePair;
 import com.beder.texture.OpenSimplex2S;
 import com.beder.texture.Operation;
+import com.beder.texture.Parameters;
+import com.beder.texture.Redrawable;
 import com.beder.texturearchive.Simplex;
 
 /**
@@ -35,8 +37,8 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	private JPanel tileParamPanel;
 	private JLabel tileScaleValue;
 
-	public SimplexNoiseGenerator(int res) {
-		super(res);
+	public SimplexNoiseGenerator(Redrawable r) {
+		super(r);
 		this.noise = new OpenSimplex2S();
 		
 		//  Option Panel
@@ -58,7 +60,7 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	
 
 	@Override
-	public ImagePair doApply(ImagePair input) {
+	public ImagePair executeOperation(ImagePair input, Parameters par) {
 		input.left = generateNoise();
 		return input;
 	}
@@ -78,10 +80,10 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	
 
 	@Override
-	public Map<String, String> getParameters() {
-		Map<String, String> pMap = new TreeMap<String, String>();
-		pMap.put("Scale", simplexScaleField.getText());
-		return pMap;
+	public Parameters getUIParameters() {
+		Parameters p = new Parameters();
+		p.put("Scale", simplexScaleField.getText());
+		return p;
 	}
 
 	@Override

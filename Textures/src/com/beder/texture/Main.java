@@ -32,8 +32,8 @@ import net.miginfocom.swing.MigLayout;
 /**
  * Main entry point for testing texture generation using layered noise.
  */
-public class Main implements MouseListener {
-	private OperationStack stack;
+public class Main implements MouseListener, Redrawable {
+	private LayerStack stack;
 	private ImagePair curImage;
 	protected JFrame frame;
 	private JPanel mainPanel;
@@ -47,7 +47,7 @@ public class Main implements MouseListener {
 	
 	public Main(int res) {
 		this.res = res;
-		stack = new OperationStack(this);
+		stack = new LayerStack(this);
 		curImage = new ImagePair(res);
 	}
 	
@@ -118,24 +118,27 @@ public class Main implements MouseListener {
         applyButton.addActionListener(e -> {
 			Operation op = stack.getCurrent();
 			ImagePair input = stack.getInputImage(op);
-			ImagePair output = op.apply(input);
+			Parameters par = op.getUIParameters();
+			ImagePair output = op.executeOperation(input, par);
 			stack.saveImage(output, op);
 			applyImage(output);
         });
         simplexButton.addActionListener(e -> {
-        	addOperation(new SimplexNoiseGenerator(res));
+        	addOperation(new SimplexNoiseGenerator(this));
         });
         copyButton.addActionListener(e -> {
-        	addOperation(new CopyMask(res));
+        	addOperation(new CopyMask(this));
        });
         mixButton.addActionListener(e -> {
-        	addOperation(new MixMask(res));
+        	addOperation(new MixMask(this));
         });
 		
 	}
 	
 	private void addOperation(Operation op) {
       	stack.add(op);
+      	ImagePair pair = stack.getInputImage(op);
+      	applyImage(pair);
     	setCurrent(op);
     	frame.repaint();
 	}
@@ -213,5 +216,11 @@ public class Main implements MouseListener {
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public int getRes() {
+		// TODO Auto-generated method stub
+		return res;
 	}
 }

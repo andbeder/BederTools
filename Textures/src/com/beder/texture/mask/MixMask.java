@@ -17,10 +17,11 @@ import javax.swing.JTextField;
 
 import com.beder.texture.ImagePair;
 import com.beder.texture.Operation;
+import com.beder.texture.Parameters;
+import com.beder.texture.Redrawable;
 import com.beder.texturearchive.Operations;
 
 public class MixMask extends Operation {
-	private double mixPercent;
 	private JSlider mixSlider;
 	private JPanel mixPanel;
 	private JTextField mixValueField;
@@ -28,9 +29,8 @@ public class MixMask extends Operation {
 	private JLabel tileScaleLabel;
 	private JLabel tileScaleValue;
 	
-	public MixMask(int res) {
-		super(res);
-		mixPercent = 50;
+	public MixMask(Redrawable redraw) {
+		super(redraw);
 		
 		mixPanel = new JPanel(new FlowLayout());
 
@@ -49,17 +49,19 @@ public class MixMask extends Operation {
         mixValueField = new JTextField("50", 6);
         mixValueField.addFocusListener(new FocusListener() {
 			public void focusLost(FocusEvent e) {
+				double mixPercent = mixSlider.getValue();
                 try {
                     double mixPct = Double.parseDouble(mixValueField.getText());
                     if (mixPct < 0 || mixPct > 100) {
                         throw new NumberFormatException("Range");
                     }
-                    mixPercent = mixPct / 100.0;
                  } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(mixPanel,
                         "Please enter a valid number between 0 and 100.",
                         "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
+                mixValueField.setText(mixPercent + "");
+                mixSlider.setValue((int) mixPercent);
 			}
 			public void focusGained(FocusEvent e) {}
 		});
@@ -75,17 +77,24 @@ public class MixMask extends Operation {
 	
 	}
 	
+	@Override
+	public Parameters getUIParameters() {
+		Parameters par = new Parameters();
+        double mixPct = Double.parseDouble(mixValueField.getText());
+		par.put("Mix", mixPct);
+		return par;
+	}
 
-	
 	@Override
 	public JPanel getConfig() {
        return  mixPanel;
 	}
 
 	@Override
-	public ImagePair doApply(ImagePair pair) {
+	public ImagePair executeOperation(ImagePair pair, Parameters par) {
 		BufferedImage mixImage = pair.left;
 		BufferedImage input = pair.right;
+		double mixPercent = par.get("Mix", 0.50) / 100.0;
 		
         if (input == null) {
             // If there's no input, return a copy of mixImage

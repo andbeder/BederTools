@@ -12,25 +12,29 @@ import javax.swing.JTextField;
 
 import com.beder.texture.ImagePair;
 import com.beder.texture.Operation;
+import com.beder.texture.Parameters;
+import com.beder.texture.Redrawable;
 
 public abstract class NoiseOperation extends Operation {
 
 	private JTextField seedField;
 	private JButton randomSeedButton;
 	private BufferedImage result;
-	private Map<String, String> par;
+	private Parameters lastPar;
+	private long seed;
 
-	public NoiseOperation(int res) {
-		super(res);
+	public NoiseOperation(Redrawable r) {
+		super(r);
 		result = null;
-		par = new TreeMap<String, String>();
+		lastPar = new Parameters();
+		seed = new Random().nextInt(Integer.MAX_VALUE);
 	}
 
     /**
      * Called by child class to add random seed controls on the edit panel
      */
-	public void addSeedConfig(JPanel panel) {
-        seedField = new JTextField(String.valueOf(new Random().nextInt(Integer.MAX_VALUE)), 8);
+	protected void addSeedConfig(JPanel panel) {
+        seedField = new JTextField(String.valueOf(seed), 8);
         panel.add(seedField);
         
         randomSeedButton = new JButton("Random");
@@ -41,27 +45,26 @@ public abstract class NoiseOperation extends Operation {
         panel.add(randomSeedButton);
 	}
 	
-	public abstract Map<String, String> getParameters();
 	
 	public abstract BufferedImage generateNoise();
 	
     /**
-     * Overriding apply() for Noise values. This will call a new function, generateNoise() instead
+     * Overriding executeOperation() for Noise values. This will call a new function, generateNoise() instead
      *   if the image needs to be refreshed. It will call getParameters() to get a list of current
      *   parameters to check against historical
      */
 	@Override
-	public ImagePair apply(ImagePair input) {
-		Map<String, String> curPar = getParameters();
+	public ImagePair executeOperation(ImagePair input, Parameters par) {
 		boolean needsRefresh = false;
-		for (Entry<String, String> cur : curPar.entrySet()) {
-			String prev = par.get(cur.getKey());
-			if (prev == null || !prev.equals(cur.getValue())) {
+		for (String parName : par.keySet()) {
+			double prev = par.get(parName);
+			if (prev != lastPar.get(parName, prev)) {
 				needsRefresh = true;
 			}
 		}
 		if (needsRefresh) {
 			result = generateNoise();
+			lastPar = par;
 		}
 		input.left = result;
 		return input;

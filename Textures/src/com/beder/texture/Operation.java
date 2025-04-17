@@ -3,53 +3,32 @@ package com.beder.texture;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public abstract class Operation implements Comparable<Operation> {
-	private ImagePair input;
-	private ImagePair output;
-	public JPanel configurePanel;
-	public int res;
-	private JPanel tilePanel;
+	private Parameters param;
+	private Redrawable redraw;
 	
-	public Operation(int res){
-		configurePanel = null;
-		this.res = res;
-		this.input = null;
-	}
-	
-    /**
-     * Returns a Panel with a set of labels for display in the operation stack.
-     */
-	protected abstract JPanel getTilePanel();
-	
-	public JPanel getTile() {
-		if (tilePanel == null) {
-			tilePanel = new JPanel(new FlowLayout());
-			tilePanel.setBorder(BorderFactory.createTitledBorder(getTitle()));
-			tilePanel.add(getTilePanel());
-		}
-		return tilePanel;
+	public Operation(Redrawable redraw){
+		this.redraw = redraw;
 	}
 	
 
 	/**
      * Applies this operation to the given input image pair and returns same pair for further operations to be applied to it.
      */
-	public abstract ImagePair doApply(ImagePair input);
+	public abstract ImagePair executeOperation(ImagePair input, Parameters par);
 
-	public ImagePair apply(ImagePair input) {
-		this.input = input.copy();
-		this.output = doApply(input);
-		this.output = output.copy();
-		return output;
-	}
+	/****
+	 * @return the current set of values chosen as parameters for this operation
+	 */
+	public abstract Parameters getUIParameters();
 
-	
-    /**
+	/**
      * Returns a textual description of the operation and its parameters.
      */
 	public abstract String getDescription();
@@ -58,6 +37,7 @@ public abstract class Operation implements Comparable<Operation> {
      * Applies this operation to the given input image and returns a new image.
      */
 	public abstract JPanel getConfig();
+
 	
 	public abstract String getTitle();
     
@@ -90,19 +70,9 @@ public abstract class Operation implements Comparable<Operation> {
 		return hash1 - hash2;
 	}
 
-	public ImagePair getInput() {
-		return input;
+	public Redrawable getRedraw() {
+		return redraw;
 	}
-
-	public void setInput(ImagePair input) {
-		this.input = input;
-	}
-
-	public ImagePair getOutput() {
-		return output;
-	}
-
-	public void setOutput(ImagePair output) {
-		this.output = output;
-	}
+	
+	
 }

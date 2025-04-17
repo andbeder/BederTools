@@ -70,7 +70,7 @@ public class PerlinNoiseGenerator extends NoiseOperation {
 	}
 
 	@Override
-	public Map<String, String> getParameters() {
+	public Map<String, String> getUIParameters() {
 		Map<String, String> pMap = new TreeMap<String, String>();
 		pMap.put("baseFreq", perlinFreqField.getText());
 		pMap.put("iterations", perlinIterField.getText());
