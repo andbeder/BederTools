@@ -1,4 +1,4 @@
-package com.beder.texture;
+package com.beder.util;
 
 /**
  * K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")

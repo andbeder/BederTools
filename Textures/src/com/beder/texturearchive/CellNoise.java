@@ -95,6 +95,7 @@ public class CellNoise {
         return out;
     }
     
+   
     private static boolean colorGraphBacktracking(List<Node> nodes) {
         for (Node node : nodes) {
             node.domain = new ArrayList<>(Arrays.asList(0, 1, 2, 3));

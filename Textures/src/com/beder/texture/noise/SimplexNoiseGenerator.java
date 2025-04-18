@@ -12,11 +12,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.beder.texture.ImagePair;
-import com.beder.texture.OpenSimplex2S;
 import com.beder.texture.Operation;
 import com.beder.texture.Parameters;
 import com.beder.texture.Redrawable;
 import com.beder.texturearchive.Simplex;
+import com.beder.util.OpenSimplex2S;
 
 /**
  * Generates a grayscale noise image using the OpenSimplex algorithm, using the
@@ -49,29 +49,9 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 
 		addSeedConfig(simplexOptionsPanel);
 		
-		//  Tile Panel
-		tileParamPanel = new JPanel(new FlowLayout());
-		tileScaleLabel = new JLabel("Scale:");
-		tileParamPanel.add(tileScaleLabel);
-		tileScaleValue = new JLabel(simplexScaleField.getText());
-		tileParamPanel.add(tileScaleValue);
 	}
 	
-	
 
-	@Override
-	public ImagePair executeOperation(ImagePair input, Parameters par) {
-		input.left = generateNoise();
-		return input;
-	}
-
-
-
-	@Override
-	public JPanel getTilePanel() {
-		return tileParamPanel;
-	}
-	
 	@Override
 	public JPanel getConfig() {
 		return simplexOptionsPanel;
@@ -90,6 +70,7 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	public BufferedImage generateNoise() {
 		double scale = Double.parseDouble(simplexScaleField.getText());
 		long seed = getSeed();
+		int res = getRedraw().getRes();
 		
 		BufferedImage img = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
 		for (int y = 0; y < res; y++) {

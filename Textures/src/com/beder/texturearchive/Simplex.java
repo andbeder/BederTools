@@ -2,7 +2,7 @@ package com.beder.texturearchive;
 
 import java.awt.image.BufferedImage;
 
-import com.beder.texture.OpenSimplex2S;
+import com.beder.util.OpenSimplex2S;
 
 public class Simplex {
 

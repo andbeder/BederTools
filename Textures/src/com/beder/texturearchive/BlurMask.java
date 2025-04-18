@@ -1,4 +1,4 @@
-package com.beder.texture.mask;
+package com.beder.texturearchive;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

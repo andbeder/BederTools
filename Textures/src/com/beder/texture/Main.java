@@ -21,11 +21,15 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.beder.texture.mask.CopyMask;
-import com.beder.texture.mask.MixMask;
+import com.beder.texture.noise.CellNoiseGenerator;
+import com.beder.texture.noise.PerlinNoiseGenerator;
 import com.beder.texture.noise.SimplexNoiseGenerator;
+import com.beder.texture.noise.VoronoiNoiseGenerator;
+import com.beder.texturearchive.MixMask;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -41,14 +45,17 @@ public class Main implements MouseListener, Redrawable {
 	private ImageIcon leftIcon;
 	private ImageIcon rightIcon;
 	private JButton applyButton;
+	private JButton saveButton;
 	private JPanel opControlPanel;
 	private JPanel imagePanel;
+	private boolean isDirty;
 	
 	
 	public Main(int res) {
 		this.res = res;
 		stack = new LayerStack(this);
 		curImage = new ImagePair(res);
+		isDirty = false;
 	}
 	
 	public void init() {
@@ -83,7 +90,7 @@ public class Main implements MouseListener, Redrawable {
         
         mainPanel.add(imagePanel, BorderLayout.CENTER);
         
-        JPanel stackPanel = stack.getStackTiles();
+        JPanel stackPanel = stack.getStackPanel();
         mainPanel.add(stackPanel, BorderLayout.EAST);
 
         
@@ -94,6 +101,18 @@ public class Main implements MouseListener, Redrawable {
         JButton simplexButton = new JButton("Simplex");
         opPanel.add(simplexButton);
         
+        // Cell Noise button
+        JButton cellNoiseButton = new JButton("Cell Noise");
+        opPanel.add(cellNoiseButton);
+
+        // Perlin Noise button
+        JButton perlinButton = new JButton("Perlin");
+        opPanel.add(perlinButton);
+
+        // Voronoi Noise button
+        JButton voronoiButton = new JButton("Voronoi");
+        opPanel.add(voronoiButton);
+        
         mainPanel.add(opPanel, BorderLayout.SOUTH);
         
         /******
@@ -101,6 +120,7 @@ public class Main implements MouseListener, Redrawable {
          */
         opControlPanel = new JPanel(new FlowLayout());
         applyButton = new JButton("Apply");
+        saveButton = new JButton("Save");
         mainPanel.add(opControlPanel, BorderLayout.NORTH);
 
         /***
@@ -115,39 +135,79 @@ public class Main implements MouseListener, Redrawable {
          * Button action methods
          */
         
+        saveButton.addActionListener(e -> {
+        	Layer l = stack.getCurrent();
+			Operation op = l.getOperation();
+			Parameters par = op.getUIParameters();
+			l.setParam(par);
+			ImagePair output = l.apply(l.getInput());
+			applyImage(output);
+			isDirty = false;
+        });
         applyButton.addActionListener(e -> {
-			Operation op = stack.getCurrent();
-			ImagePair input = stack.getInputImage(op);
+        	Layer l = stack.getCurrent();
+			Operation op = l.getOperation();
+			ImagePair input = l.getInput();
 			Parameters par = op.getUIParameters();
 			ImagePair output = op.executeOperation(input, par);
-			stack.saveImage(output, op);
 			applyImage(output);
+			isDirty = true;
         });
         simplexButton.addActionListener(e -> {
-        	addOperation(new SimplexNoiseGenerator(this));
+        	if (isClean()) {
+        		addOperation(new SimplexNoiseGenerator(this));
+        	}
+        });
+        cellNoiseButton.addActionListener(e -> {
+            if (isClean()) {
+                addOperation(new CellNoiseGenerator(this));
+            }
+        });
+        perlinButton.addActionListener(e -> {
+            if (isClean()) {
+                addOperation(new PerlinNoiseGenerator(this));
+            }
+        });
+        voronoiButton.addActionListener(e -> {
+            if (isClean()) {
+                addOperation(new VoronoiNoiseGenerator(this));
+            }
         });
         copyButton.addActionListener(e -> {
-        	addOperation(new CopyMask(this));
+        	if (isClean()) {
+        		addOperation(new CopyMask(this));
+        	}
        });
         mixButton.addActionListener(e -> {
-        	addOperation(new MixMask(this));
+        	if (isClean()) {
+        		addOperation(new MixMask(this));
+        	}
         });
 		
 	}
 	
+	private boolean isClean() {
+		if (isDirty) {
+			int res = JOptionPane.showConfirmDialog(frame, "You have not saved this operation, are you sure you want to discard the results?");
+			if (res == JOptionPane.YES_OPTION) {
+				isDirty = false;
+			}
+		}
+		return !isDirty;
+	}
+	
 	private void addOperation(Operation op) {
-      	stack.add(op);
-      	ImagePair pair = stack.getInputImage(op);
-      	applyImage(pair);
-    	setCurrent(op);
+     	Layer l = stack.add(op);
+      	applyImage(l.getInput());
+    	showOptions(op);
     	frame.repaint();
 	}
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		Component panel = e.getComponent();
-		Operation o = stack.getOperation(panel);
-		setCurrent(o);
+		//Component panel = e.getComponent();
+		//Operation o = stack.getOperation(panel);
+		//showOptions(o);
 	}
 	
 	
@@ -157,11 +217,7 @@ public class Main implements MouseListener, Redrawable {
 	 *    	- Displaying new images based on what's stored in the Operation Stack
 	 *      - Updating the UI with the operation's specific controls.
 	 */
-	private void setCurrent(Operation op) {
-		// Change the images
-		ImagePair newImage = stack.getImage(op);
-		applyImage(newImage);
-		
+	private void showOptions(Operation op) {
 		//  Show UI updates
 		opControlPanel.removeAll();
 		JPanel controlPanel = new JPanel();
@@ -169,7 +225,7 @@ public class Main implements MouseListener, Redrawable {
 		controlPanel.add(op.getConfig());
 		controlPanel.add(applyButton);
 		opControlPanel.add(controlPanel);
-		stack.setCurrent(op);
+		opControlPanel.add(saveButton);
 	}
 	
 	

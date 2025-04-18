@@ -54,20 +54,31 @@ public abstract class NoiseOperation extends Operation {
      *   parameters to check against historical
      */
 	@Override
-	public ImagePair executeOperation(ImagePair input, Parameters par) {
-		boolean needsRefresh = false;
-		for (String parName : par.keySet()) {
-			double prev = par.get(parName);
-			if (prev != lastPar.get(parName, prev)) {
-				needsRefresh = true;
-			}
-		}
-		if (needsRefresh) {
-			result = generateNoise();
-			lastPar = par;
-		}
-		input.left = result;
-		return input;
+	public final ImagePair executeOperation(ImagePair input, Parameters par) {
+	    // 1) If we've never generated a result yet, force a refresh.
+	    boolean needsRefresh = (result == null);
+
+	    // 2) Or if any parameter is new or has changed, refresh.
+	    for (String key : par.keySet()) {
+	        double curr = par.get(key);
+	        // lastPar.containsKey tells us if it's new;
+	        // lastPar.get(key, NaN) gives the old value (NaN if missing)
+	        double prev = lastPar.get(key, Double.NaN);
+	        if (!lastPar.containsKey(key) || curr != prev) {
+	            needsRefresh = true;
+	            break;
+	        }
+	    }
+
+	    if (needsRefresh) {
+	        // regenerate and cache both result and parameters
+	        result = generateNoise();
+	        lastPar.clear();
+	        lastPar.putAll(par);
+	    }
+
+	    input.left = result;
+	    return input;
 	}
 
 	public long getSeed() {

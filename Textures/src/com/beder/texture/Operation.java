@@ -44,13 +44,6 @@ public abstract class Operation implements Comparable<Operation> {
     /**
      * Called by parent GUI to show Swing controls for configuration parameters for that specific operation
      */
-    public final void addControls(JPanel parent) {
-    	parent.removeAll();
-    	if (configurePanel == null) {
-    		configurePanel = getConfig();
-    	}
-    	parent.add(configurePanel);
-    }
 
     /**
      * Applies this operation to the given input image and returns a new image.

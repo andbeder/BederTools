@@ -47,10 +47,13 @@ public class LayerStack {
 	 * @param op
 	 */
 
-	public void add(Operation op) {
+	public Layer add(Operation op) {
 		ImagePair input = (curPtr == -1) ? new ImagePair(main.res) : stack.get(curPtr).getOutput();
-		stack.add(++curPtr, new Layer(op, input));
+		Layer l = new Layer(op, input);
+		stack.add(++curPtr, l);
 		buildStackPanel();
+		main.applyImage(input);
+		return l;
 	}
 
 	public Layer getCurrent() {

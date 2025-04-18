@@ -37,11 +37,6 @@ public class CopyMask extends Operation {
 	}
 
 	@Override
-	public JPanel getTilePanel() {
-		return tilePanel;
-	}
-
-	@Override
 	public String getDescription() {
 		return "Copy: from left image";
 	}

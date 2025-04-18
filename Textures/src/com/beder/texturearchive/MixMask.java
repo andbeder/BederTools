@@ -1,4 +1,4 @@
-package com.beder.texture.mask;
+package com.beder.texturearchive;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -19,7 +19,6 @@ import com.beder.texture.ImagePair;
 import com.beder.texture.Operation;
 import com.beder.texture.Parameters;
 import com.beder.texture.Redrawable;
-import com.beder.texturearchive.Operations;
 
 public class MixMask extends Operation {
 	private JSlider mixSlider;

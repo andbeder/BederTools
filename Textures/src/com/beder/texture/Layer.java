@@ -20,10 +20,6 @@ public class Layer {
 		
 		tilePanel = new JPanel(new FlowLayout());
 		tilePanel.setBorder(BorderFactory.createTitledBorder(op.getTitle()));
-		for (String key : param.keySet()) {
-			tilePanel.add(new JLabel(key));
-			tilePanel.add(new JLabel(Double.toString(param.get(key, 0))));
-		}
 	}
 
 	public Layer(Operation op, ImagePair input) {
@@ -33,13 +29,18 @@ public class Layer {
 	
 	public ImagePair apply(ImagePair input) {
 		this.input = input.copy();
-		param = op.getUIParameters();
 		ImagePair out = op.executeOperation(input, param);
 		output = out.copy();
 		return out;
 	}
 	
 	public JPanel getTilePanel() {
+		param = op.getUIParameters();
+		tilePanel.removeAll();
+		for (String key : param.keySet()) {
+			tilePanel.add(new JLabel(key));
+			tilePanel.add(new JLabel(Double.toString(param.get(key, 0))));
+		}
 		return tilePanel;
 	}
 
@@ -49,6 +50,18 @@ public class Layer {
 
 	public ImagePair getOutput() {
 		return output;
+	}
+
+	public Operation getOperation() {
+		return op;
+	}
+
+	public Parameters getParam() {
+		return param;
+	}
+
+	public void setParam(Parameters param) {
+		this.param = param;
 	}
 	
 	

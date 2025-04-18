@@ -1,158 +1,108 @@
 package com.beder.texture.noise;
 
-import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 import java.util.Random;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.beder.texture.ImagePair;
-import com.beder.texture.Operation;
-import com.beder.texturearchive.Perlin;
+import com.beder.texture.Parameters;
+import com.beder.texture.Redrawable;
 
 /**
- * Simple stub implementation of a Perlin noise generator.
- * Replace this with a full-featured algorithm as needed.
+ * Generates a grayscale noise image using Perlin noise with multiple octaves.
+ * Frequency and iteration count are configurable, and a seed ensures reproducibility.
  */
 public class PerlinNoiseGenerator extends NoiseOperation {
-	private JPanel perlinOptionsPanel;
-	private JTextField perlinFreqField;
-	private JTextField perlinIterField;
-	private int[] permutation;
-	private int[] p;
-	private JPanel perlinTilePanel;
+    private final JPanel optionsPanel;
+    private final JTextField frequencyField;
+    private final JTextField iterationsField;
 
-    public PerlinNoiseGenerator(int res) {
-    	super(res);
- 
-     }
-    
+    public PerlinNoiseGenerator(Redrawable redraw) {
+        super(redraw);
+        optionsPanel = new JPanel(new FlowLayout());
+        optionsPanel.setBorder(BorderFactory.createTitledBorder("Perlin Options"));
 
-	@Override
-	public JPanel getConfig() {
-        perlinOptionsPanel = new JPanel(new FlowLayout());
-        perlinOptionsPanel.add(new JLabel("Frequency:"));
-        perlinFreqField = new JTextField("4.0", 6);
-        perlinOptionsPanel.add(perlinFreqField);
-        perlinOptionsPanel.add(new JLabel("Iterations:"));
-        perlinIterField = new JTextField("4", 6);
-        perlinOptionsPanel.add(perlinIterField);
-        
-        addSeedConfig(perlinOptionsPanel);
-		return perlinOptionsPanel;
-	}
+        optionsPanel.add(new JLabel("Frequency:"));
+        frequencyField = new JTextField("4.0", 6);
+        optionsPanel.add(frequencyField);
 
-	@Override
-	public JPanel getOperationTile() {
-		if (perlinTilePanel == null) {
-			perlinTilePanel = new JPanel(new FlowLayout());
-			perlinTilePanel.setBorder(BorderFactory.createEtchedBorder());
-			perlinTilePanel.setLayout(new BorderLayout());
-			perlinTilePanel.add(new JLabel("Simplex"), BorderLayout.CENTER);
-			JPanel tileParamPanel = new JPanel(new FlowLayout());
-			perlinTilePanel.add(tileParamPanel, BorderLayout.SOUTH);
-			JLabel tileScaleLabel = new JLabel("Freq:");
-			tileParamPanel.add(tileScaleLabel);
-			JLabel tileFreqValue = new JLabel(perlinFreqField.getText());
-			tileParamPanel.add(tileFreqValue);
-			JLabel tileIterLabel = new JLabel("Iterx:");
-			tileParamPanel.add(tileIterLabel);
-			JLabel tileIterValue = new JLabel(perlinIterField.getText());
-			tileParamPanel.add(tileIterValue);
-		}
-		return perlinTilePanel;
-	}
+        optionsPanel.add(new JLabel("Iterations:"));
+        iterationsField = new JTextField("4", 6);
+        optionsPanel.add(iterationsField);
 
-	@Override
-	public Map<String, String> getUIParameters() {
-		Map<String, String> pMap = new TreeMap<String, String>();
-		pMap.put("baseFreq", perlinFreqField.getText());
-		pMap.put("iterations", perlinIterField.getText());
-		return pMap;
-	}
-	
-	
-	@Override
-	public BufferedImage generateNoise() {
-        double baseFreq = Double.parseDouble(perlinFreqField.getText());
-        int iterations = Integer.parseInt(perlinIterField.getText());
- 
-        permutation = new int[256];
-        p = new int[512];
-        Random rand = new java.util.Random(getSeed());
-
-        // Initialize permutation with identity.
-        for (int i = 0; i < 256; i++) {
-            permutation[i] = i;
-        }
-        // Shuffle using the user-provided seed.
-        for (int i = 255; i > 0; i--) {
-            int j = rand.nextInt(i + 1);
-            int temp = permutation[i];
-            permutation[i] = permutation[j];
-            permutation[j] = temp;
-        }
-        // Duplicate the permutation array.
-        for (int i = 0; i < 512; i++) {
-            p[i] = permutation[i & 255];
-        }
-        
-        return generatePerlinNoise(baseFreq, iterations);
+        // Adds the seed text field and randomize button
+        addSeedConfig(optionsPanel);
     }
-	
- 
-    /**
-     * Generates Perlin noise using multiple octaves, seeded by the specified seed.
-     *
-     * @param res         The width/height of the image.
-     * @param baseFreq    Base frequency for noise.
-     * @param iterations  Number of octaves.
-     * @param seed        The user-provided seed for reproducible noise.
-     * @return A BufferedImage containing the Perlin noise pattern.
-     */
-    public BufferedImage generatePerlinNoise(double baseFreq, int iterations) {
 
+    @Override
+    public JPanel getConfig() {
+        return optionsPanel;
+    }
+
+    @Override
+    public Parameters getUIParameters() {
+        Parameters p = new Parameters();
+        p.put("Frequency", frequencyField.getText());
+        p.put("Iterations", iterationsField.getText());
+        return p;
+    }
+
+    @Override
+    public BufferedImage generateNoise() {
+        int res = getRedraw().getRes();
+        double baseFreq = Double.parseDouble(frequencyField.getText());
+        int iterations = Integer.parseInt(iterationsField.getText());
+        long seed = getSeed();
+
+        // Build permutation table
+        int[] perm = new int[256];
+        for (int i = 0; i < 256; i++) perm[i] = i;
+        Random rnd = new Random(seed);
+        for (int i = 255; i > 0; i--) {
+            int j = rnd.nextInt(i + 1);
+            int tmp = perm[i];
+            perm[i] = perm[j];
+            perm[j] = tmp;
+        }
+        // Duplicate
+        int[] p = new int[512];
+        for (int i = 0; i < 512; i++) p[i] = perm[i & 255];
+
+        // Generate multi‑octave Perlin noise
         BufferedImage img = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < res; y++) {
             for (int x = 0; x < res; x++) {
-                double amplitude = 1.0;
-                double frequency = baseFreq;
-                double noiseSum = 0;
-                double maxValue = 0;
-                for (int i = 0; i < iterations; i++) {
-                    double n = noise(x * frequency / res, y * frequency / res);
-                    noiseSum += n * amplitude;
-                    maxValue += amplitude;
-                    amplitude *= 0.5;  // Persistence
-                    frequency *= 2.0;  // Lacunarity
+                double amplitude = 1.0, frequency = baseFreq;
+                double sum = 0, max = 0;
+                for (int o = 0; o < iterations; o++) {
+                    double nx = x * frequency / res, ny = y * frequency / res;
+                    double n = perlin(nx, ny, p);
+                    sum += n * amplitude;
+                    max += amplitude;
+                    amplitude *= 0.5;
+                    frequency *= 2.0;
                 }
-                double normalized = (noiseSum / maxValue + 1) / 2;
-                int gray = (int)(normalized * 255);
-                int color = 0xFF000000 | (gray << 16) | (gray << 8) | gray;
+                // Normalize to [0,255]
+                double v = (sum / max + 1) * 0.5;
+                int gray = (int)(v * 255);
+                int color = 0xFF000000 | (gray<<16) | (gray<<8) | gray;
                 img.setRGB(x, y, color);
             }
         }
         return img;
     }
 
-    public double noise(double x, double y) {
-        int X = (int)Math.floor(x) & 255;
-        int Y = (int)Math.floor(y) & 255;
-        x -= Math.floor(x);
-        y -= Math.floor(y);
-        double u = fade(x);
-        double v = fade(y);
+    private double perlin(double x, double y, int[] p) {
+        int X = (int)Math.floor(x) & 255, Y = (int)Math.floor(y) & 255;
+        x -= Math.floor(x); y -= Math.floor(y);
+        double u = fade(x), v = fade(y);
 
-        int aa = p[p[X] + Y];
-        int ab = p[p[X] + Y + 1];
-        int ba = p[p[X + 1] + Y];
-        int bb = p[p[X + 1] + Y + 1];
+        int aa = p[p[X] + Y], ab = p[p[X] + Y + 1],
+            ba = p[p[X + 1] + Y], bb = p[p[X + 1] + Y + 1];
 
         double gradAA = grad(aa, x, y);
         double gradBA = grad(ba, x - 1, y);
@@ -173,21 +123,19 @@ public class PerlinNoiseGenerator extends NoiseOperation {
     }
 
     private double grad(int hash, double x, double y) {
-        int h = hash & 7;  // Convert low 3 bits of hash code
-        double u = h < 4 ? x : y;
-        double v = h < 4 ? y : x;
-        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+        int h = hash & 7;
+        double u = (h < 4) ? x : y;
+        double v = (h < 4) ? y : x;
+        return (((h & 1) == 0) ? u : -u) + (((h & 2) == 0) ? v : -v);
     }
 
+    @Override
+    public String getDescription() {
+        return "Generates Perlin noise with configurable frequency, octaves, and seed";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Generates Perlin noise using multiple octaves, seeded by the specified seed";
-	}
-
-
-	@Override
-	public String getTitle() {
-		return "Perlin Noise";
-	}
+    @Override
+    public String getTitle() {
+        return "Perlin";
+    }
 }
