@@ -20,11 +20,12 @@ public class PerlinNoiseGenerator extends NoiseOperation {
     private final JPanel optionsPanel;
     private final JTextField frequencyField;
     private final JTextField iterationsField;
+    private static final String PARAM_FREQ = "Frequency";
+   private static final String PARAM_ITER = "Iterations";
 
     public PerlinNoiseGenerator(Redrawable redraw) {
         super(redraw);
         optionsPanel = new JPanel(new FlowLayout());
-        optionsPanel.setBorder(BorderFactory.createTitledBorder("Perlin Options"));
 
         optionsPanel.add(new JLabel("Frequency:"));
         frequencyField = new JTextField("4.0", 6);
@@ -46,16 +47,16 @@ public class PerlinNoiseGenerator extends NoiseOperation {
     @Override
     public Parameters getUIParameters() {
         Parameters p = new Parameters();
-        p.put("Frequency", frequencyField.getText());
-        p.put("Iterations", iterationsField.getText());
+        p.put(PARAM_FREQ, frequencyField.getText());
+        p.put(PARAM_ITER, iterationsField.getText());
         return p;
     }
 
     @Override
-    public BufferedImage generateNoise() {
+    public BufferedImage generateNoise(Parameters par) {
         int res = getRedraw().getRes();
-        double baseFreq = Double.parseDouble(frequencyField.getText());
-        int iterations = Integer.parseInt(iterationsField.getText());
+        double baseFreq = par.get(PARAM_FREQ, 4);
+        int iterations = (int) par.get(PARAM_ITER, 4);
         long seed = getSeed();
 
         // Build permutation table

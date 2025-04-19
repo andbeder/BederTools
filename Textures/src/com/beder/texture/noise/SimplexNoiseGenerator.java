@@ -36,6 +36,7 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	private JLabel tileScaleLabel;
 	private JPanel tileParamPanel;
 	private JLabel tileScaleValue;
+	private final static String PARAM_SCALE = "Scale";
 
 	public SimplexNoiseGenerator(Redrawable r) {
 		super(r);
@@ -62,13 +63,14 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 	@Override
 	public Parameters getUIParameters() {
 		Parameters p = new Parameters();
-		p.put("Scale", simplexScaleField.getText());
+		p.put(PARAM_SCALE, simplexScaleField.getText());
 		return p;
 	}
 
+
 	@Override
-	public BufferedImage generateNoise() {
-		double scale = Double.parseDouble(simplexScaleField.getText());
+	public BufferedImage generateNoise(Parameters par) {
+		double scale = par.get(PARAM_SCALE, 200);
 		long seed = getSeed();
 		int res = getRedraw().getRes();
 		

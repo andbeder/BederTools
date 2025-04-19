@@ -20,6 +20,7 @@ public abstract class NoiseOperation extends Operation {
 	private JTextField seedField;
 	private JButton randomSeedButton;
 	private BufferedImage result;
+	private ImagePair input;
 	private Parameters lastPar;
 	private long seed;
 
@@ -46,7 +47,7 @@ public abstract class NoiseOperation extends Operation {
 	}
 	
 	
-	public abstract BufferedImage generateNoise();
+	public abstract BufferedImage generateNoise(Parameters par);
 	
     /**
      * Overriding executeOperation() for Noise values. This will call a new function, generateNoise() instead
@@ -57,6 +58,7 @@ public abstract class NoiseOperation extends Operation {
 	public final ImagePair executeOperation(ImagePair input, Parameters par) {
 	    // 1) If we've never generated a result yet, force a refresh.
 	    boolean needsRefresh = (result == null);
+	    this.input = input;
 
 	    // 2) Or if any parameter is new or has changed, refresh.
 	    for (String key : par.keySet()) {
@@ -72,7 +74,7 @@ public abstract class NoiseOperation extends Operation {
 
 	    if (needsRefresh) {
 	        // regenerate and cache both result and parameters
-	        result = generateNoise();
+	        result = generateNoise(par);
 	        lastPar.clear();
 	        lastPar.putAll(par);
 	    }
@@ -85,4 +87,10 @@ public abstract class NoiseOperation extends Operation {
         long seed = Long.parseLong(seedField.getText());
 		return seed;
 	}
+
+	public ImagePair getInput() {
+		return input;
+	}
+	
+	
 }

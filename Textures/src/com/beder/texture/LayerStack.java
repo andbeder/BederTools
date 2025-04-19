@@ -16,9 +16,9 @@ public class LayerStack {
 	private ArrayList<Layer> stack;
 	int curPtr;
 	private JPanel stackPanel;
-	private Main main;
+	private TextureGenius main;
 	
-	public LayerStack(Main main){
+	public LayerStack(TextureGenius main){
 		this.main = main;
 		stack = new ArrayList<Layer>();
 		curPtr = -1;
@@ -37,7 +37,7 @@ public class LayerStack {
 		for (Layer l : stack) {
 			stackPanel.add(l.getTilePanel());
 		}
-		main.frame.pack();
+		main.getGUI().frame.pack();
 	}
 
 	/*****
@@ -48,11 +48,11 @@ public class LayerStack {
 	 */
 
 	public Layer add(Operation op) {
-		ImagePair input = (curPtr == -1) ? new ImagePair(main.res) : stack.get(curPtr).getOutput();
+		ImagePair input = (curPtr == -1) ? new ImagePair(main.getRes()) : stack.get(curPtr).getOutput();
 		Layer l = new Layer(op, input);
 		stack.add(++curPtr, l);
 		buildStackPanel();
-		main.applyImage(input);
+		main.getGUI().applyImage(input);
 		return l;
 	}
 

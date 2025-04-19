@@ -19,6 +19,8 @@ public class CellNoiseGenerator extends NoiseOperation {
     private final JPanel optionsPanel;
     private final JTextField frequencyField;
     private final JSlider gaussianSlider;
+    private final static String PARAM_FREQ = "Frequency";
+    private final static String PARAM_GUAS = "Guassian";
 
     public CellNoiseGenerator(Redrawable redraw) {
         super(redraw);
@@ -49,16 +51,16 @@ public class CellNoiseGenerator extends NoiseOperation {
     @Override
     public Parameters getUIParameters() {
         Parameters p = new Parameters();
-        p.put("Frequency", frequencyField.getText());
-        p.put("GaussianPct", Integer.toString(gaussianSlider.getValue()));
+        p.put(PARAM_FREQ, frequencyField.getText());
+        p.put(PARAM_GUAS, Integer.toString(gaussianSlider.getValue()));
         return p;
     }
 
     @Override
-    public BufferedImage generateNoise() {
+    public BufferedImage generateNoise(Parameters param) {
         int res = getRedraw().getRes();
-        int cells = Integer.parseInt(frequencyField.getText());
-        double mix = gaussianSlider.getValue() / 100.0;
+        int cells = (int) param.get(PARAM_FREQ, 10);
+        double mix = param.get(PARAM_GUAS, 40) / 100.0;
         long seed = getSeed();
         return CellNoise.generateCellNoise(res, cells, mix, new Random(seed));
     }

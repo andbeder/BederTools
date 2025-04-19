@@ -19,7 +19,8 @@ public class Layer {
 		this.op = op;
 		
 		tilePanel = new JPanel(new FlowLayout());
-		tilePanel.setBorder(BorderFactory.createTitledBorder(op.getTitle()));
+		param = new Parameters();
+		//tilePanel.setBorder(BorderFactory.createTitledBorder(op.getTitle()));
 	}
 
 	public Layer(Operation op, ImagePair input) {
