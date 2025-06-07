@@ -31,10 +31,6 @@ public class CopyMask extends Operation {
         return pair;
 	}
 
-	@Override
-	public JPanel getConfig() {
-        return optionsPanel;
-	}
 
 	@Override
 	public String getDescription() {
@@ -45,12 +41,6 @@ public class CopyMask extends Operation {
 	public String getTitle() {
 		// TODO Auto-generated method stub
 		return "Copy";
-	}
-
-
-	@Override
-	public Parameters getUIParameters() {
-		return new Parameters();
 	}
 
 	

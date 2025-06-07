@@ -60,8 +60,12 @@ public class TextureGenius {
      * Adds a new operation to the stack and marks the state as dirty.
      */
     public ImagePair addOperation(Operation op) {
-        Layer l = stack.add(op);
-        ImagePair input = l.getInput();
+    	Layer current = stack.getCurrent();
+		ImagePair input = current == null ? new ImagePair(res) : current.getOutput();
+		Layer l = new Layer(op, input);
+		stack.add(l);
+		stack.buildStackPanel();
+		gui.applyImage(input);
         this.curImage = input;
         this.isDirty = true;
         return input;
@@ -71,9 +75,12 @@ public class TextureGenius {
      * Applies the current operation (without saving), marking the state dirty.
      */
     public ImagePair applyCurrent() {
-        Layer l = stack.getCurrent();
-        ImagePair output = l.apply(l.getInput());
-        this.curImage = output;
+	    Layer l = stack.getCurrent();
+	    // ← grab the sliders/textfields before we execute
+	    Parameters p = l.getOperation().getUIParameters();
+	    l.setParam(p);
+	    ImagePair output = l.apply(l.getInput());        
+	    this.curImage = output;
         this.isDirty = true;
         return output;
     }
@@ -85,10 +92,19 @@ public class TextureGenius {
         Layer l = stack.getCurrent();
         Parameters p = l.getOperation().getUIParameters();
         l.setParam(p);
+        stack.buildStackPanel();
         ImagePair output = l.apply(l.getInput());
         this.curImage = output;
         this.isDirty = false;
         return output;
+    }
+    
+    public void newCurrent() {
+        Layer l = stack.getCurrent();
+        if (l != null && l.getOutput() != null) {
+            gui.applyImage(l.getOutput());
+            gui.showOptions();
+        }
     }
 
     /**

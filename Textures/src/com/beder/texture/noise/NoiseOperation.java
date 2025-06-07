@@ -22,32 +22,21 @@ public abstract class NoiseOperation extends Operation {
 	private BufferedImage result;
 	private ImagePair input;
 	private Parameters lastPar;
-	private long seed;
+	private final static String PARAM_SEED = "Seed";
 
 	public NoiseOperation(Redrawable r) {
 		super(r);
 		result = null;
 		lastPar = new Parameters();
-		seed = new Random().nextInt(Integer.MAX_VALUE);
+		long seed = new Random().nextInt(Integer.MAX_VALUE);
+		addParameter(PARAM_SEED, CONTROL_TYPE.SEED, seed);
 	}
 
     /**
      * Called by child class to add random seed controls on the edit panel
      */
-	protected void addSeedConfig(JPanel panel) {
-        seedField = new JTextField(String.valueOf(seed), 8);
-        panel.add(seedField);
-        
-        randomSeedButton = new JButton("Random");
-        randomSeedButton.addActionListener(e -> {
-            String newSeed = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
-            seedField.setText(newSeed);
-        });
-        panel.add(randomSeedButton);
-	}
 	
-	
-	public abstract BufferedImage generateNoise(Parameters par);
+	public abstract BufferedImage generateNoise(Parameters par, long seed);
 	
     /**
      * Overriding executeOperation() for Noise values. This will call a new function, generateNoise() instead
@@ -74,7 +63,8 @@ public abstract class NoiseOperation extends Operation {
 
 	    if (needsRefresh) {
 	        // regenerate and cache both result and parameters
-	        result = generateNoise(par);
+	    	long seed = (long) par.get(PARAM_SEED, new Random().nextLong());
+	        result = generateNoise(par, seed);
 	        lastPar.clear();
 	        lastPar.putAll(par);
 	    }

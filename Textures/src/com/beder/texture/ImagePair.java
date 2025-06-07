@@ -10,21 +10,20 @@ public class ImagePair {
 	
 	private ImagePair() {
 		
-	}
+	} 
 
 	public ImagePair(int res) {
-		left = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
-		right = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = left.createGraphics();
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, left.getWidth(), left.getHeight());
-		g.dispose();
-		g = right.createGraphics();
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, left.getWidth(), left.getHeight());
-		g.dispose();
+	    left = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
+	    right = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
+	    Graphics2D g = left.createGraphics();
+	    g.setColor(Color.BLACK);
+	    g.fillRect(0, 0, left.getWidth(), left.getHeight());
+	    g.dispose();
+	    g = right.createGraphics();
+	    g.setColor(Color.BLACK);
+	    g.fillRect(0, 0, right.getWidth(), right.getHeight());
+	    g.dispose();
 	}
-
 	
 	public ImagePair(ImagePair old) {
 		left = copyImage(old.left);

@@ -17,48 +17,22 @@ import com.beder.texture.Redrawable;
  * Frequency and iteration count are configurable, and a seed ensures reproducibility.
  */
 public class PerlinNoiseGenerator extends NoiseOperation {
-    private final JPanel optionsPanel;
-    private final JTextField frequencyField;
-    private final JTextField iterationsField;
     private static final String PARAM_FREQ = "Frequency";
-   private static final String PARAM_ITER = "Iterations";
+    private static final String PARAM_ITER = "Iterations";
 
     public PerlinNoiseGenerator(Redrawable redraw) {
         super(redraw);
-        optionsPanel = new JPanel(new FlowLayout());
-
-        optionsPanel.add(new JLabel("Frequency:"));
-        frequencyField = new JTextField("4.0", 6);
-        optionsPanel.add(frequencyField);
-
-        optionsPanel.add(new JLabel("Iterations:"));
-        iterationsField = new JTextField("4", 6);
-        optionsPanel.add(iterationsField);
-
-        // Adds the seed text field and randomize button
-        addSeedConfig(optionsPanel);
+        addParameter(PARAM_FREQ, CONTROL_TYPE.INT, 4);
+        addParameter(PARAM_ITER, CONTROL_TYPE.INT, 4);
     }
 
-    @Override
-    public JPanel getConfig() {
-        return optionsPanel;
-    }
 
     @Override
-    public Parameters getUIParameters() {
-        Parameters p = new Parameters();
-        p.put(PARAM_FREQ, frequencyField.getText());
-        p.put(PARAM_ITER, iterationsField.getText());
-        return p;
-    }
-
-    @Override
-    public BufferedImage generateNoise(Parameters par) {
+    public BufferedImage generateNoise(Parameters par, long seed) {
         int res = getRedraw().getRes();
         double baseFreq = par.get(PARAM_FREQ, 4);
         int iterations = (int) par.get(PARAM_ITER, 4);
-        long seed = getSeed();
-
+ 
         // Build permutation table
         int[] perm = new int[256];
         for (int i = 0; i < 256; i++) perm[i] = i;

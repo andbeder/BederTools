@@ -15,7 +15,6 @@ import com.beder.texture.ImagePair;
 import com.beder.texture.Operation;
 import com.beder.texture.Parameters;
 import com.beder.texture.Redrawable;
-import com.beder.texturearchive.Simplex;
 import com.beder.util.OpenSimplex2S;
 
 /**
@@ -30,48 +29,19 @@ import com.beder.util.OpenSimplex2S;
 public class SimplexNoiseGenerator extends NoiseOperation {
 
 	private final OpenSimplex2S noise;
-	private JPanel simplexOptionsPanel;
-	private JPanel simplexTilePanel;
-	private JTextField simplexScaleField;
-	private JLabel tileScaleLabel;
-	private JPanel tileParamPanel;
-	private JLabel tileScaleValue;
 	private final static String PARAM_SCALE = "Scale";
 
 	public SimplexNoiseGenerator(Redrawable r) {
 		super(r);
 		this.noise = new OpenSimplex2S();
 		
-		//  Option Panel
-		simplexOptionsPanel = new JPanel(new FlowLayout());
-		simplexOptionsPanel.add(new JLabel("Scale:"));
-		simplexScaleField = new JTextField("200", 6);
-		simplexOptionsPanel.add(simplexScaleField);
-
-		addSeedConfig(simplexOptionsPanel);
-		
-	}
-	
-
-	@Override
-	public JPanel getConfig() {
-		return simplexOptionsPanel;
-	}
-	
-	
-
-	@Override
-	public Parameters getUIParameters() {
-		Parameters p = new Parameters();
-		p.put(PARAM_SCALE, simplexScaleField.getText());
-		return p;
+		addParameter(PARAM_SCALE, Operation.CONTROL_TYPE.INT, 200);
 	}
 
 
 	@Override
-	public BufferedImage generateNoise(Parameters par) {
+	public BufferedImage generateNoise(Parameters par, long seed) {
 		double scale = par.get(PARAM_SCALE, 200);
-		long seed = getSeed();
 		int res = getRedraw().getRes();
 		
 		BufferedImage img = new BufferedImage(res, res, BufferedImage.TYPE_INT_ARGB);
@@ -88,6 +58,8 @@ public class SimplexNoiseGenerator extends NoiseOperation {
 		return img;
 	}
 
+	
+	
 	public double noise(double x, double y, long seed) {
 		return OpenSimplex2S.noise2(seed, x, y);
 	}

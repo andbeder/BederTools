@@ -13,11 +13,6 @@ import com.beder.texture.Redrawable;
 
 public class VegetationNoiseGenerator extends NoiseOperation {
 	
-	private JPanel optionsPanel;
-	private JTextField seedCountField;
-	private JTextField growthField;
-	private JTextField deathRateField;
-	private JTextField durationField;
 	private final static String PARAM_SEED_COUNT = "Seeds";
 	private final static String PARAM_GROWTH = "Growth";
 	private final static String PARAM_DEATH = "Death";
@@ -25,49 +20,17 @@ public class VegetationNoiseGenerator extends NoiseOperation {
 	
 	public VegetationNoiseGenerator(Redrawable redraw) {
 		super(redraw);
-
-        optionsPanel = new JPanel(new FlowLayout());
-
-        // seedCount
-		optionsPanel.add(new JLabel("Initial Seeds:"));
-		seedCountField = new JTextField("100", 6);
-		optionsPanel.add(seedCountField);
-
-		// growth
-		optionsPanel.add(new JLabel("Growth (0–1):"));
-		growthField = new JTextField("0.5", 6);
-		optionsPanel.add(growthField);
-
-		// deathRate
-		optionsPanel.add(new JLabel("Death Rate (0–1):"));
-		deathRateField = new JTextField("0.2", 6);
-		optionsPanel.add(deathRateField);
-
-		// duration
-		optionsPanel.add(new JLabel("Iterations:"));
-		durationField = new JTextField("50", 6);
-		optionsPanel.add(durationField);
+		addParameter(PARAM_SEED_COUNT, CONTROL_TYPE.INT, 100);
+		addParameter(PARAM_GROWTH, CONTROL_TYPE.DOUBLE, 0.5);
+		addParameter(PARAM_DEATH, CONTROL_TYPE.DOUBLE, 0.2);
+		addParameter(PARAM_ITER, CONTROL_TYPE.INT, 50);
 	}
 
-	@Override
-	public Parameters getUIParameters() {
-		Parameters param = new Parameters();
-		param.put(PARAM_SEED_COUNT, Double.parseDouble(seedCountField.getText()));
-		param.put(PARAM_GROWTH, Double.parseDouble(growthField.getText()));
-		param.put(PARAM_DEATH, Double.parseDouble(deathRateField.getText()));
-		param.put(PARAM_ITER, Double.parseDouble(durationField.getText()));
-		return param;
-	}
 
 	@Override
 	public String getDescription() {
-		return null;
-	}
-
-	@Override
-	public JPanel getConfig() {
-		return optionsPanel;
-	}
+	    return "Simulates vegetation growth over fertility map using CA";
+	} // in VegetationNoiseGenerator.java
 
 	@Override
 	public String getTitle() {
@@ -75,8 +38,8 @@ public class VegetationNoiseGenerator extends NoiseOperation {
 	}
 
 	@Override
-    public BufferedImage generateNoise(Parameters param) {
-        Random rand = new Random(getSeed());
+    public BufferedImage generateNoise(Parameters param, long seed) {
+        Random rand = new Random(seed);
         BufferedImage fertility = getInput().left;
         int res = getRedraw().getRes();
         int seedCount = (int) param.get(PARAM_SEED_COUNT, 100);
