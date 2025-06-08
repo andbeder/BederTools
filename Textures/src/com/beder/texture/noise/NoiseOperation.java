@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -17,20 +16,20 @@ import com.beder.texture.Redrawable;
 
 public abstract class NoiseOperation extends Operation {
 
-	private JTextField seedField;
-	private JButton randomSeedButton;
-	private BufferedImage result;
-	private ImagePair input;
+        private BufferedImage result;
+        private ImagePair input;
 	private Parameters lastPar;
 	private final static String PARAM_SEED = "Seed";
 
-	public NoiseOperation(Redrawable r) {
-		super(r);
-		result = null;
-		lastPar = new Parameters();
-		long seed = new Random().nextInt(Integer.MAX_VALUE);
-		addParameter(PARAM_SEED, CONTROL_TYPE.SEED, seed);
-	}
+        public NoiseOperation(Redrawable r) {
+                super(r);
+                result = null;
+                lastPar = new Parameters();
+                long seed = new Random().nextInt(Integer.MAX_VALUE);
+                addParameter(PARAM_SEED, CONTROL_TYPE.SEED, seed);
+                // retrieve reference to the seed field for convenience
+                this.seedField = getSeedField();
+        }
 
     /**
      * Called by child class to add random seed controls on the edit panel
@@ -73,10 +72,17 @@ public abstract class NoiseOperation extends Operation {
 	    return input;
 	}
 
-	public long getSeed() {
-        long seed = Long.parseLong(seedField.getText());
-		return seed;
-	}
+        public long getSeed() {
+                JTextField tf = this.seedField;
+                if (tf == null) {
+                        return 0L;
+                }
+                try {
+                        return Long.parseLong(tf.getText());
+                } catch (NumberFormatException e) {
+                        return 0L;
+                }
+        }
 
 	public ImagePair getInput() {
 		return input;

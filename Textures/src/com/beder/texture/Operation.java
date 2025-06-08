@@ -17,10 +17,12 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 
 public abstract class Operation implements Comparable<Operation> {
-	private Parameters param;
-	private Redrawable redraw;
-	private JPanel controlPanel;
-	private Map<String, Component> controls;
+        private Parameters param;
+        private Redrawable redraw;
+        private JPanel controlPanel;
+        private Map<String, Component> controls;
+        /** Text field used when a SEED parameter is added. */
+        protected JTextField seedField;
 	protected enum CONTROL_TYPE {INT, DOUBLE, SLIDER, SEED};
 	
 	public Operation(Redrawable redraw){
@@ -42,8 +44,8 @@ public abstract class Operation implements Comparable<Operation> {
 			controls.put(name, doubleField);
 			controlPanel.add(doubleField);
 			break;
-	    case SLIDER:
-	        JSlider slider = new JSlider(0, 100, (int) def);
+            case SLIDER:
+                JSlider slider = new JSlider(0, 100, (int) def);
 	        slider.setMajorTickSpacing(20);
 	        slider.setMinorTickSpacing(5);
 	        slider.setPaintTicks(true);
@@ -51,17 +53,17 @@ public abstract class Operation implements Comparable<Operation> {
 	        controls.put(name, slider);
 	        controlPanel.add(slider);
 	        break;
-		case SEED:
-			JTextField seedField = new JTextField(String.format("%d", (long)def), 8); // FIX: store to seedField
-		    controls.put(name, seedField);
-		    controlPanel.add(seedField);
-		    JButton randomSeedButton = new JButton("Random");
-		    randomSeedButton.addActionListener(e -> {
-		        String newSeed = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
-		        seedField.setText(newSeed);
-		    });
-		    controlPanel.add(randomSeedButton);
-		    break;
+                case SEED:
+                    seedField = new JTextField(String.format("%d", (long)def), 8);
+                    controls.put(name, seedField);
+                    controlPanel.add(seedField);
+                    JButton randomSeedButton = new JButton("Random");
+                    randomSeedButton.addActionListener(e -> {
+                        String newSeed = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
+                        seedField.setText(newSeed);
+                    });
+                    controlPanel.add(randomSeedButton);
+                    break;
 		default:
 			break;
 		}
@@ -133,9 +135,17 @@ public abstract class Operation implements Comparable<Operation> {
 		return hash1 - hash2;
 	}
 
-	public Redrawable getRedraw() {
-		return redraw;
-	}
-	
-	
+        public Redrawable getRedraw() {
+                return redraw;
+        }
+
+        /**
+         * Returns the text field created when a SEED parameter was added.
+         * May be {@code null} if no such parameter exists.
+         */
+        public JTextField getSeedField() {
+                return seedField;
+        }
+
+
 }
