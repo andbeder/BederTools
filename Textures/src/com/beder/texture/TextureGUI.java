@@ -52,6 +52,23 @@ public class TextureGUI implements Redrawable {
         frame = new JFrame("Texture Generator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // --- Menu Bar ---
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem newItem = new JMenuItem("New");
+        JMenuItem openItem = new JMenuItem("Open");
+        JMenuItem saveItem = new JMenuItem("Save");
+        JMenuItem saveAsItem = new JMenuItem("Save As");
+        JMenuItem closeItem = new JMenuItem("Close");
+        fileMenu.add(newItem);
+        fileMenu.add(openItem);
+        fileMenu.add(saveItem);
+        fileMenu.add(saveAsItem);
+        fileMenu.addSeparator();
+        fileMenu.add(closeItem);
+        menuBar.add(fileMenu);
+        frame.setJMenuBar(menuBar);
+
         mainPanel = new JPanel(new BorderLayout());
 
         // Center: image display with arrows
@@ -142,6 +159,59 @@ public class TextureGUI implements Redrawable {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        // Menu actions
+        newItem.addActionListener(e -> {
+            genius.reset();
+            applyImage(genius.getCurrentImage());
+            showOptions();
+        });
+
+        openItem.addActionListener(e -> {
+            JFileChooser ch = new JFileChooser();
+            if (ch.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    genius.loadStack(ch.getSelectedFile());
+                    applyImage(genius.getCurrentImage());
+                    showOptions();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Failed to open file: " + ex.getMessage(),
+                            "Open Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        saveItem.addActionListener(e -> {
+            File f = genius.getStackFile();
+            if (f == null) {
+                JFileChooser ch = new JFileChooser();
+                if (ch.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+                f = ch.getSelectedFile();
+            }
+            try {
+                genius.saveStack(f);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Failed to save file: " + ex.getMessage(),
+                        "Save Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        saveAsItem.addActionListener(e -> {
+            JFileChooser ch = new JFileChooser();
+            if (ch.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    genius.saveStack(ch.getSelectedFile());
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Failed to save file: " + ex.getMessage(),
+                            "Save Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        closeItem.addActionListener(e -> frame.dispose());
 
         // --- Action Listeners ---
         saveButton.addActionListener(e -> {

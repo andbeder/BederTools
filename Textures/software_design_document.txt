@@ -89,6 +89,7 @@ The software is a texture generator that allows users to apply various operation
     - `ImagePair curImage`: Currently displayed image pair.
     - `boolean isDirty`: State of unsaved changes.
     - `TextureGUI gui`: Reference to the GUI.
+    - `File stackFile`: Last used JSON file for saving/loading the stack.
 
 - **Constructors:**
     - `TextureGenius(int res)`: Initializes the texture generator with a specified resolution.
@@ -101,6 +102,8 @@ The software is a texture generator that allows users to apply various operation
     - `ImagePair addOperation(Operation op)`: Adds and executes new operations.
     - `ImagePair applyCurrent()`: Applies the current process.
     - `ImagePair saveCurrent()`: Saves the current operation and marks clean.
+    - `void reset()`: Clears the stack and resets images.
+    - `void saveStack(File) / loadStack(File)`: Persist or restore the operation stack in JSON.
 
 ### 8. TextureGUI.java
 - **Properties:**
@@ -108,13 +111,15 @@ The software is a texture generator that allows users to apply various operation
     - `int res`: Resolution of images.
     - `ImagePair curImage`: Current image to display.
     - `JFrame frame`: Main GUI window.
+    - `JMenuBar menuBar`: Top-level menu bar with a File menu.
     - `JPanel mainPanel`, `imagePanel`, `opControlPanel`: Various panels for organizing the UI.
 
 - **Methods:**
-    - `void init()`: Initializes and displays the GUI.
+    - `void init()`: Initializes and displays the GUI and builds the File menu.
     - `void showOptions()`: Displays parameters for the selected operation.
     - `void applyImage(ImagePair current)`: Updates the displayed images based on the current `ImagePair`.
     - `int getRes()`: Returns the resolution.
+    - Menu actions for New, Open, Save, Save As, and Close call the corresponding `TextureGenius` methods.
 
 ### 9. Scatter related classes
 #### ScatterOperation.java
