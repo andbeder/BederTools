@@ -56,7 +56,7 @@ public class PngBackgroundStripper {
             progressDialog.setLocationRelativeTo(null);
 
             // 4) Use a SwingWorker to do the work in background
-            SwingWorker<Void, Integer> worker = new SwingWorker<>() {
+            SwingWorker<Void, Integer> worker = new SwingWorker<Void, Integer>() {
                 @Override
                 protected Void doInBackground() {
                     // create a fixed‐size pool of 4 threads

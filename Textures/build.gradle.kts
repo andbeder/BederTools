@@ -5,18 +5,20 @@
 plugins {
     `java-library`
     `maven-publish`
+    application
 }
 
 repositories {
     mavenLocal()
+    mavenCentral()
     maven {
         url = uri("https://repo.maven.apache.org/maven2/")
     }
 }
 
 dependencies {
-    api(libs.org.locationtech.jts.jts.core)
-    api(libs.com.miglayout.miglayout)
+    implementation(libs.org.locationtech.jts.jts.core)
+    implementation("com.miglayout:miglayout-swing:5.3")
 }
 
 group = "com.beder"
@@ -28,4 +30,12 @@ publishing {
     publications.create<MavenPublication>("maven") {
         from(components["java"])
     }
+}
+
+application {
+  mainClass.set("com.beder.texture.TextureGenius")
+}
+
+tasks.named<JavaExec>("run") {
+  classpath += files("$projectDir/bin")
 }
