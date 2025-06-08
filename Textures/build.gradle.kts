@@ -19,6 +19,8 @@ repositories {
 dependencies {
     implementation(libs.org.locationtech.jts.jts.core)
     implementation("com.miglayout:miglayout-swing:5.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 group = "com.beder"
@@ -38,4 +40,20 @@ application {
 
 tasks.named<JavaExec>("run") {
   classpath += files("$projectDir/bin")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("src")
+            exclude("test/**")
+        }
+    }
+    test {
+        java.srcDirs("src/test/java")
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

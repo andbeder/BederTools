@@ -1,6 +1,7 @@
 package com.beder.texture;
 
 import com.beder.texture.mask.CopyMask;
+import com.beder.texturearchive.MixMask;
 import com.beder.texture.noise.CellNoiseGenerator;
 import com.beder.texture.noise.PerlinNoiseGenerator;
 import com.beder.texture.noise.SimplexNoiseGenerator;
@@ -158,8 +159,12 @@ public class TextureGUI implements Redrawable {
         voronoiButton.addActionListener(e -> addOperation(new VoronoiNoiseGenerator(this)));
         vegetationButton.addActionListener(e -> addOperation(new VegetationNoiseGenerator(this)));
         scatterButton.addActionListener(e -> addOperation(new ScatterOperation(this)));
-        copyButton.addActionListener(e -> addOperation(new CopyMask(this)));
-        //mixButton.addActionListener(e -> addOperation(new MixMask(this)));
+        copyButton.addActionListener(e -> {
+            addOperation(new CopyMask(this));
+            ImagePair img = genius.applyCurrent();
+            applyImage(img);
+        });
+        mixButton.addActionListener(e -> addOperation(new MixMask(this)));
     }
     
     /****
