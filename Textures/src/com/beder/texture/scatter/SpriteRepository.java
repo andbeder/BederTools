@@ -1,6 +1,7 @@
 package com.beder.texture.scatter;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,10 +10,12 @@ public class SpriteRepository {
     private static SpriteRepository instance;
     private final List<BufferedImage> sprites;
     private final List<Integer> weights;
+    private File lastDirectory;
 
     private SpriteRepository() {
         sprites = new ArrayList<>();
         weights = new ArrayList<>();
+        lastDirectory = new File(System.getProperty("user.home"));
     }
 
     public static synchronized SpriteRepository getInstance() {
@@ -58,6 +61,22 @@ public class SpriteRepository {
             sum += w;
         }
         return sum;
+    }
+
+    /**
+     * Remember the last directory used when loading sprites.
+     */
+    public synchronized File getLastDirectory() {
+        return lastDirectory;
+    }
+
+    /**
+     * Update the last directory. Ignores null or non-directories.
+     */
+    public synchronized void setLastDirectory(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            lastDirectory = dir;
+        }
     }
 
     /**

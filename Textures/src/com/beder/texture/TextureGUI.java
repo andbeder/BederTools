@@ -108,7 +108,7 @@ public class TextureGUI implements Redrawable {
         // Configure Scatter dialog launcher
         loadImagesButton = new JButton("Load");
         loadImagesButton.addActionListener(e -> {
-            ConfigureScatterDialog dialog = new ConfigureScatterDialog(frame);
+            ConfigureScatterDialog dialog = new ConfigureScatterDialog(this, frame);
             dialog.setVisible(true);
         });
 

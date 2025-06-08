@@ -54,11 +54,12 @@ Textures is a Java application that provides functionalities for creating and ma
     - Size (INT): average sprite width in pixels  
     - StandardDeviation (DOUBLE): SD for sprite-size Gaussian distribution  
     - Seed (SEED): random seed for reproducibility  
-  - **FR-21.5**: When the user clicks Generate, the system shall overlay Quantity sprites onto the current image using these rules:  
-    1. Weighted Selection: each sprite is chosen randomly in proportion to its Weight divided by the sum of all Weights.  
-    2. Gaussian Size: each sprite’s width is drawn from N(mean=Size, sd=StandardDeviation).  
+  - **FR-21.5**: When the user clicks Generate, the system shall overlay Quantity sprites onto the current image using these rules:
+    1. Weighted Selection: each sprite is chosen randomly in proportion to its Weight divided by the sum of all Weights.
+    2. Gaussian Size: each sprite’s width is drawn from N(mean=Size, sd=StandardDeviation).
     3. Random Rotation: each sprite is rotated by a random angle [0°,360°).
     4. Toroidal Wrapping: any portion of a pasted sprite crossing an edge reappears on the opposite side.
+  - **FR-21.6**: The Add Sprite file chooser shall open in the directory used during the previous sprite load session.
 
 ### 10. File Menu
 - **FR-22**: The application shall provide a menu bar with a **File** dropdown.
