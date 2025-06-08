@@ -125,30 +125,21 @@ public class TextureGUI implements Redrawable {
         generateButton = new JButton("Generate");
         saveButton  = new JButton("Save");
         saveButton.addActionListener(e -> {
-            // 1) Permanently apply the current operation in the stack
-            ImagePair img = genius.saveCurrent();                                  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+            // Apply the current operation and then export the images
+            ImagePair img = genius.saveCurrent();
             applyImage(img);
 
-            // 2) Prompt the user for a file location
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save Texture");
             chooser.setSelectedFile(new File("texture.png"));
             if (chooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                File base = chooser.getSelectedFile();
-                String name = base.getName().replaceFirst("(\\.[^.]+)?$", "");
-                File leftFile  = new File(base.getParentFile(), name + "_left.png");
-                File rightFile = new File(base.getParentFile(), name + "_right.png");
-
-                // 3) Write out both left/right images
                 try {
-                    ImageIO.write(curImage.left,  "png", leftFile);
-                    ImageIO.write(curImage.right, "png", rightFile);
+                    exportCurrentImage(chooser.getSelectedFile());
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(
                         frame,
                         "Failed to save image: " + ex.getMessage(),
-                        "Save Error",
-                        JOptionPane.ERROR_MESSAGE
+                        "Save Error", JOptionPane.ERROR_MESSAGE
                     );
                 }
             }
@@ -212,12 +203,7 @@ public class TextureGUI implements Redrawable {
         });
 
         closeItem.addActionListener(e -> frame.dispose());
-
         // --- Action Listeners ---
-        saveButton.addActionListener(e -> {
-            ImagePair img = genius.saveCurrent();
-            applyImage(img);
-        });
         generateButton.addActionListener(e -> {
             ImagePair img = genius.applyCurrent();
             applyImage(img);
@@ -310,6 +296,17 @@ public class TextureGUI implements Redrawable {
     @Override
     public int getRes() {
         return res;
+    }
+
+    /**
+     * Export the current left and right images using the provided base file.
+     */
+    public void exportCurrentImage(java.io.File base) throws IOException {
+        String name = base.getName().replaceFirst("(\\.[^.]+)?$", "");
+        java.io.File leftFile  = new java.io.File(base.getParentFile(), name + "_left.png");
+        java.io.File rightFile = new java.io.File(base.getParentFile(), name + "_right.png");
+        javax.imageio.ImageIO.write(curImage.left,  "png", leftFile);
+        javax.imageio.ImageIO.write(curImage.right, "png", rightFile);
     }
 
 	@Override
