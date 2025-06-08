@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import com.beder.util.ImageSplitter;
 
 public class ConfigureScatterDialog extends JDialog {
     private final SpriteRepository repo;
@@ -46,11 +47,13 @@ public class ConfigureScatterDialog extends JDialog {
 
         // Controls
         JButton addButton    = new JButton("Add Sprite");
+        JButton addFourButton = new JButton("Add 4");
         JButton removeButton = new JButton("Remove Selected");
         spriteSaveButton          = new JButton("Save");
         JButton cancelButton = new JButton("Cancel");
 
         addButton.addActionListener(e -> onAddSprites());
+        addFourButton.addActionListener(e -> onAddFour());
         removeButton.addActionListener(e -> onRemoveSprites());
         spriteSaveButton.addActionListener(e -> onSave());
         cancelButton.addActionListener(e -> dispose());
@@ -58,6 +61,7 @@ public class ConfigureScatterDialog extends JDialog {
         // Layout panels
         JPanel topPanel = new JPanel();
         topPanel.add(addButton);
+        topPanel.add(addFourButton);
         topPanel.add(removeButton);
 
         JPanel bottomPanel = new JPanel();
@@ -124,6 +128,42 @@ public class ConfigureScatterDialog extends JDialog {
                         JOptionPane.ERROR_MESSAGE
                     );
                 }
+            }
+            previewPanel.revalidate();
+            previewPanel.repaint();
+            updateSaveState();
+        }
+    }
+
+    private void onAddFour() {
+        JFileChooser chooser = new JFileChooser();
+        File last = repo.getLastDirectory();
+        if (last != null) {
+            chooser.setCurrentDirectory(last);
+        }
+        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+            "Image files", ImageIO.getReaderFileSuffixes()
+        ));
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            repo.setLastDirectory(chooser.getCurrentDirectory());
+            File f = chooser.getSelectedFile();
+            try {
+                BufferedImage img = ImageIO.read(f);
+                for (BufferedImage part : ImageSplitter.splitIntoFour(img)) {
+                    loadedSprites.add(part);
+                    JTextField weightField = new JTextField("10", 3);
+                    weightFields.add(weightField);
+                    JPanel slot = buildSpriteSlot(part, weightField);
+                    spriteSlots.add(slot);
+                    previewPanel.add(slot);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to load: " + f.getName(),
+                    "Load Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
             }
             previewPanel.revalidate();
             previewPanel.repaint();

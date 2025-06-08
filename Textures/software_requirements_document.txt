@@ -60,6 +60,7 @@ Textures is a Java application that provides functionalities for creating and ma
     3. Random Rotation: each sprite is rotated by a random angle [0°,360°).
     4. Toroidal Wrapping: any portion of a pasted sprite crossing an edge reappears on the opposite side.
   - **FR-21.6**: The Add Sprite file chooser shall open in the directory used during the previous sprite load session.
+  - **FR-21.7**: The configuration dialog shall provide an "Add 4" button that loads one image and splits it into four sprites automatically.
 
 ### 10. File Menu
 - **FR-22**: The application shall provide a menu bar with a **File** dropdown.
