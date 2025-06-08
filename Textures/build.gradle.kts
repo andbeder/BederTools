@@ -6,6 +6,7 @@ plugins {
     `java-library`
     `maven-publish`
     application
+    eclipse
 }
 
 repositories {
