@@ -1,0 +1,256 @@
+# Updated Software Design Document
+
+## Overview
+The software is a texture generator that allows users to apply various operations to generate textures using images. The core structure revolves around a layered approach where each operation can be applied in sequence to create complex textures, including the newly introduced Scatter operation.
+
+## Class Structure
+
+### 1. ImagePair.java
+- **Properties:**
+    - `BufferedImage left`: Stores the left image.
+    - `BufferedImage right`: Stores the right image.
+
+- **Constructors:**
+    - `ImagePair()`: Private constructor to prevent instantiation without dimensions.
+    - `ImagePair(int res)`: Initializes `left` and `right` images with a specified resolution, filling them with black.
+    - `ImagePair(ImagePair old)`: Copy constructor to create a new `ImagePair` from an existing one.
+
+- **Methods:**
+    - `ImagePair copy()`: Returns a new `ImagePair` that is a copy of the current instance.
+    - `static BufferedImage copyImage(BufferedImage source)`: Static method that creates a deep copy of a given `BufferedImage`.
+
+### 2. Layer.java
+- **Properties:**
+    - `ImagePair input`: The input image pair for this layer.
+    - `ImagePair output`: The resulting output image pair after applying an operation.
+    - `Operation op`: The operation to be performed.
+    - `Parameters param`: The parameters for the operation.
+    - `JPanel tilePanel`: The UI panel representing this layer.
+
+- **Constructors:**
+    - `Layer(Operation op)`: Initializes the layer with a given operation.
+    - `Layer(Operation op, ImagePair input)`: Initializes the layer with an operation and input images.
+
+- **Methods:**
+    - `ImagePair apply(ImagePair input)`: Applies the operation to the input image, updating the output.
+    - `JPanel getTilePanel()`: Builds and returns a panel to display the layer's configuration.
+    - `getInput()`, `getOutput()`, `getOperation()`, `getParam()`, `setParam(Parameters param)`: Getter and setter methods for the properties.
+
+### 3. LayerStack.java
+- **Properties:**
+    - `ArrayList<Layer> stack`: The collection of layers.
+    - `int curPtr`: Pointer to the current layer in the stack.
+    - `JPanel stackPanel`: The UI component representing the stack.
+
+- **Constructors:**
+    - `LayerStack(TextureGenius genius)`: Initializes the stack and its associated UI.
+
+- **Methods:**
+    - `JPanel getStackPanel()`: Returns the panel representing the layer stack.
+    - `void buildStackPanel()`: Rebuilds the stack display in the UI.
+    - `void add(Layer l)`: Adds a new layer to the stack.
+    - `Layer getCurrent()`: Retrieves the currently selected layer.
+
+### 4. Operation.java
+- **Properties:**
+    - `Parameters param`: Stores the parameters for this operation.
+    - `Redrawable redraw`: Interface for updating the canvas.
+    - `JPanel controlPanel`: The UI panel for configuring this operation.
+    - `Map<String, Component> controls`: Controls associated with each parameter.
+
+- **Constructors:**
+    - `Operation(Redrawable redraw)`: Initializes the operation with a redrawable context.
+
+- **Methods:**
+    - `void addParameter(String name, CONTROL_TYPE type, double def)`: Adds a parameter to the operation.
+    - `Parameters getUIParameters()`: Retrieves the current UI parameter values as a `Parameters` object.
+    - `abstract ImagePair executeOperation(ImagePair input, Parameters par)`: Abstract method to execute the operation.
+    - `abstract String getTitle()`: Returns the title of the operation.
+    - `abstract String getDescription()`: Returns the description of the operation.
+    - `final JPanel getConfig()`: Returns the configuration panel for the operation.
+    - `BufferedImage copyOf(BufferedImage src)`: Copies the given `BufferedImage`.
+
+### 5. Parameters.java
+- **Properties:** Inherits from `TreeMap<String, Double>` and stores parameters.
+
+- **Methods:**
+    - `double get(String s, double def)`: Retrieves a parameter or returns default if not found.
+    - `void put(String key, String val)`: Puts a string value parsed as a double into the parameters.
+
+### 6. Redrawable.java
+- **Methods:**
+    - `void applyImage(ImagePair pair)`: Apply the given image pair.
+    - `int getRes()`: Retrieves the resolution requirement.
+
+### 7. TextureGenius.java
+- **Properties:**
+    - `int res`: Textures resolution.
+    - `LayerStack stack`: The stack of layers.
+    - `ImagePair curImage`: Currently displayed image pair.
+    - `boolean isDirty`: State of unsaved changes.
+    - `TextureGUI gui`: Reference to the GUI.
+
+- **Constructors:**
+    - `TextureGenius(int res)`: Initializes the texture generator with a specified resolution.
+
+- **Methods:**
+    - `int getRes()`: Returns the configured resolution.
+    - `boolean isClean()`: Checks if there are unapplied changes.
+    - `JPanel getStackPanel()`: Returns the stack panel.
+    - `Operation getCurrentOperation()`: Gets currently selected operation.
+    - `ImagePair addOperation(Operation op)`: Adds and executes new operations.
+    - `ImagePair applyCurrent()`: Applies the current process.
+    - `ImagePair saveCurrent()`: Saves the current operation and marks clean.
+
+### 8. TextureGUI.java
+- **Properties:**
+    - `TextureGenius genius`: Reference to the logic controller.
+    - `int res`: Resolution of images.
+    - `ImagePair curImage`: Current image to display.
+    - `JFrame frame`: Main GUI window.
+    - `JPanel mainPanel`, `imagePanel`, `opControlPanel`: Various panels for organizing the UI.
+
+- **Methods:**
+    - `void init()`: Initializes and displays the GUI.
+    - `void showOptions()`: Displays parameters for the selected operation.
+    - `void applyImage(ImagePair current)`: Updates the displayed images based on the current `ImagePair`.
+    - `int getRes()`: Returns the resolution.
+
+### 9. Scatter related classes
+#### ScatterOperation.java
+- **Properties:**
+    - `List<BufferedImage> sprites`: Stores the user-provided sprite images.
+    - `Map<BufferedImage, Integer> weights`: Maps each sprite to its weight.
+
+- **Methods:**
+    - `void openConfigDialog()`: Opens a dialog for configuring scatter parameters and uploading sprites.
+    - `ImagePair executeOperation(ImagePair input, Parameters par)`: Executes the scatter operation based on the input and par.
+    
+#### ConfigureScatterDialog.java
+- **Properties:**
+    - `JFrame dialog`: The dialog window.
+    - `List<BufferedImage> uploadedImages`: Stores uploaded sprite images.
+    - `Map<BufferedImage, Integer> weights`: The weights for each sprite.
+
+- **Methods:**
+    - `void initDialog()`: Initializes and displays the dialog.
+    - `void saveSpritesAndWeights()`: Saves the uploaded sprites and their weights.
+
+#### SpriteRepository.java
+- **Properties:**
+    - `Map<BufferedImage, Integer> spriteWeightMap`: Stores sprites with their weights.
+
+- **Methods:**
+    - `void addSprite(BufferedImage sprite, int weight)`: Adds a sprite to the collection.
+    - `List<BufferedImage> getRandomSprites(int quantity)`: Gets random sprites based on their weights.
+
+### 10. Noise related classes
+Each class responsible for implementing noise generation algorithms:
+- **NoiseOperation**: Abstract base class that handles common behavior for noise operations.
+- **CellNoiseGenerator**, **PerlinNoiseGenerator**, **SimplexNoiseGenerator**, **VegetationNoiseGenerator**, **VoronoiNoiseGenerator**: Each of these implements specific noise generation logic.
+
+### 11. Mask related classes
+- **CopyMask.java**: Implements simple masking operations to copy images.
+
+### Class Sequence
+The order of class creation from scratch can be summarized in JSON format:
+
+```json
+{
+  "classes": [
+    {
+      "sequence": 1,
+      "name": "ImagePair",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 2,
+      "name": "Parameters",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 3,
+      "name": "Operation",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 4,
+      "name": "Layer",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 5,
+      "name": "LayerStack",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 6,
+      "name": "Redrawable",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 7,
+      "name": "TextureGenius",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 8,
+      "name": "TextureGUI",
+      "package": "com.beder.texture"
+    },
+    {
+      "sequence": 9,
+      "name": "noise.NoiseOperation",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 10,
+      "name": "noise.CellNoiseGenerator",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 11,
+      "name": "noise.PerlinNoiseGenerator",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 12,
+      "name": "noise.SimplexNoiseGenerator",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 13,
+      "name": "noise.VegetationNoiseGenerator",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 14,
+      "name": "noise.VoronoiNoiseGenerator",
+      "package": "com.beder.texture.noise"
+    },
+    {
+      "sequence": 15,
+      "name": "mask.CopyMask",
+      "package": "com.beder.texture.mask"
+    },
+    {
+      "sequence": 16,
+      "name": "scatter.ConfigureScatterDialog",
+      "package": "com.beder.texture.scatter"
+    },
+    {
+      "sequence": 17,
+      "name": "scatter.ScatterOperation",
+      "package": "com.beder.texture.scatter"
+    },
+    {
+      "sequence": 18,
+      "name": "scatter.SpriteRepository",
+      "package": "com.beder.texture.scatter"
+    }
+  ]
+}
+```
+
+## Summary
+This updated document reflects both new requirements and structural elements for the Scatter operation and maintains the existing architecture. It ensures clarity in the functionality and behavior expected from the application while aligning with the specifications laid out in the Software Requirements Document.

@@ -1,0 +1,145 @@
+# Software Requirements Specification for Textures Application
+
+## Application Overview
+**Project Name**: Textures  
+**Java Package**: com.beder.texture  
+
+Textures is a Java application that provides functionalities for creating and manipulating images using various noise generation methods. The application features a Swing-based graphical user interface (GUI) allowing users to explore operations on images and maintain a stack of processing layers. 
+
+## Functional Requirements
+
+### 1. Application Initialization
+- **FR-1**: The system shall launch a Swing GUI window titled “Texture Generator” when the user runs the `TextureGenius.main(...)` method.
+- **FR-2**: The system shall initialize two blank, black RGBA images (“left” and “right”) of a fixed square resolution (default 1024×1024) upon startup, using the `ImagePair(int res)` constructor.
+- **FR-3**: The system shall display the “left” and “right” images side-by-side at 512×512 within the main panel.
+
+### 2. Operation Stack Management
+- **FR-4**: The system shall maintain an ordered stack of image-processing “layers,” each encapsulating an `Operation` and its input/output images, managed by the `LayerStack` class.
+- **FR-5**: The system shall allow users to add a new layer (operation) at the current stack position and automatically rebuild and display the operation-stack panel.
+- **FR-6**: The system shall highlight or select the current layer when the user clicks its corresponding panel in the stack, updating the displayed parameters and image preview.
+
+### 3. Operations and Parameters
+- **FR-7**: The system shall support a variety of noise-generation operations—Simplex, Perlin, Cell, Voronoi, and Vegetation—each as a subclass of `NoiseOperation`, selectable via buttons.
+- **FR-8**: The system shall support a “Copy” mask operation that duplicates the left image into the right pane.
+- **FR-9**: For each operation, the system shall present UI controls for all configurable parameters (e.g., sliders for Gaussian mix, text fields for seed, frequency, iterations), built by `Operation.addParameter(...)`.
+- **FR-10**: The system shall track the current UI parameter values and, upon “Apply,” refresh the operation’s output if any parameter has changed (or if it’s the first application), caching results to avoid unnecessary recomputation.
+
+### 4. Apply vs. Save Workflow
+- **FR-11**: The system shall provide an Apply button that previews the effect of the current operation on the active image pair without committing parameter changes, marking the state as dirty.
+- **FR-12**: The system shall provide a Save button that permanently applies the current operation—persisting parameter changes—and clears the dirty flag.
+
+### 5. Image Display and Updating
+- **FR-13**: The system shall update the displayed images immediately after any Apply or Save action, scaling to 512×512 with smooth rendering.
+- **FR-14**: The system shall support clicking new layers in the stack to redisplay their output images and show their configuration panel.
+
+### 6. Persistence and Export
+- **FR-15**: Upon saving, the system shall prompt the user for a base filename and save two PNG files, appending `_left.png` and `_right.png` to the chosen name.
+- **FR-16**: The system shall handle file-save errors gracefully by displaying a Swing error dialog with the exception message.
+
+### 7. Extensibility and Modularity
+- **FR-17**: The system shall allow new operations to be added without modifying core GUI code by extending the abstract `Operation` class and registering buttons in `TextureGUI`.
+- **FR-18**: The system shall encapsulate noise-generation logic in `NoiseOperation` subclasses, separating GUI parameter-handling from algorithm implementation.
+
+### 8. User Interaction and Feedback
+- **FR-19**: The system shall visually indicate invalid parameter input in text fields by logging errors to the console and ignoring the invalid value until corrected.
+- **FR-20**: The system shall maintain a “dirty” flag to prevent adding new operations when there are unapplied changes, ensuring consistent image state.
+
+### 9. Scatter Operation (Change Request)
+- **FR-21**: The system shall support a new “Scatter” operation that randomly distributes user-provided sprites across the image buffer.
+  - **FR-21.1**: The Scatter operation shall allow users to upload a set of equally-sized images via a dedicated dialog, opened by a Configure Scatter button.
+  - **FR-21.2**: The upload dialog shall display icon previews of all uploaded images side-by-side, each with an adjacent integer Weight field to set its relative frequency.
+  - **FR-21.3**: The upload dialog shall include a Save button that persists the images and weights in memory. Until at least one image is saved, the Scatter operation’s Generate button remains disabled.
+  - **FR-21.4**: In the Scatter configuration panel, the system shall present UI controls for these parameters:  
+    - Quantity (INT): number of sprites to place  
+    - Size (INT): average sprite width in pixels  
+    - StandardDeviation (DOUBLE): SD for sprite-size Gaussian distribution  
+    - Seed (SEED): random seed for reproducibility  
+  - **FR-21.5**: When the user clicks Generate, the system shall overlay Quantity sprites onto the current image using these rules:  
+    1. Weighted Selection: each sprite is chosen randomly in proportion to its Weight divided by the sum of all Weights.  
+    2. Gaussian Size: each sprite’s width is drawn from N(mean=Size, sd=StandardDeviation).  
+    3. Random Rotation: each sprite is rotated by a random angle [0°,360°).  
+    4. Toroidal Wrapping: any portion of a pasted sprite crossing an edge reappears on the opposite side.
+
+## Technical Requirements
+
+### 1. Core Engine & Data Structures
+- **TR-1.1**: **ImagePair**  
+  - TR-1.1.1: Implement a class `ImagePair` holding two `BufferedImage` fields, left and right.  
+  - TR-1.1.2: Constructor `ImagePair(int res)` creates two `res x res`, `TYPE_INT_ARGB` images filled with black (`Color.BLACK`).  
+  - TR-1.1.3: Provide a `copy()` method that deep-copies both images and returns a new `ImagePair`.  
+
+- **TR-1.2**: **Parameters**  
+  - TR-1.2.1: Implement `Parameters` extending `TreeMap<String,Double>` with:  
+    - `double get(String key, double def)` returning stored value or def if absent.  
+    - `void put(String key, String val)` parsing `val` as `Double`.  
+
+- **TR-1.3**: **Redrawable Interface**  
+  - TR-1.3.1: Define `Redrawable` extending `MouseListener` with:  
+    - `void applyImage(ImagePair pair)` to update the UI display.  
+    - `int getRes()` to report the current resolution.  
+
+### 2. Operation Framework
+- **TR-2.1**: **Operation Base Class**  
+  - TR-2.1.1: Abstract class `Operation` must store a `Redrawable` reference and a Swing `JPanel` controlPanel plus a `Map<String,Component>` controls.  
+  - TR-2.1.2: Provide `addParameter(String name, CONTROL_TYPE type, double def)` to append labeled UI controls:  
+    - INT: 4-char `JTextField`.  
+    - DOUBLE: 5-char `JTextField`.  
+    - SLIDER: `JSlider(0–100)`, ticks at 20/5, labels on.  
+    - SEED: `JTextField` + “Random” JButton that fills a new random seed.  
+  - TR-2.1.3: Expose `JPanel getConfig()` returning `controlPanel`.  
+  - TR-2.1.4: Expose `Parameters getUIParameters()` that reads each control into a `Parameters` map, ignoring invalid inputs.  
+  - TR-2.1.5: Enforce `Comparable<Operation>` via `identity-hashcode` ordering.  
+
+- **TR-2.2**: **NoiseOperation Subclass**  
+  - TR-2.2.1: Abstract `NoiseOperation` extends `Operation`, adding:  
+    - A hidden Seed parameter on construction.  
+    - A cached `BufferedImage` result and `Parameters` lastPar.  
+    - Final `ImagePair executeOperation(ImagePair input, Parameters par)` that:  
+      1. Checks if result==null or any par value differs from lastPar.  
+      2. If so, calls `generateNoise(par, seed)` to regenerate result and copy par into lastPar.  
+      3. Sets input.left = result and returns input.  
+  - TR-2.2.2: Child classes must implement:  
+    - `BufferedImage generateNoise(Parameters par, long seed);`  
+    - `String getTitle();`  
+    - `String getDescription();`  
+
+### 3. Noise Operation Classes
+Each noise class must:
+- In the constructor, call `super(redraw)` and register all UI parameters via `addParameter(...)`.
+- Implement `generateNoise` exactly as specified, producing a toroidally-wrapped, grayscale ARGB image.
+  
+#### Specific Implementations
+- **TR-3.1**: **SimplexNoiseGenerator**  
+- **TR-3.2**: **PerlinNoiseGenerator**  
+- **TR-3.3**: **CellNoiseGenerator**  
+- **TR-3.4**: **VoronoiNoiseGenerator**  
+- **TR-3.5**: **VegetationNoiseGenerator**  
+
+### 4. Mask Operation Classes
+- **TR-4.1**: **CopyMask**  
+  - TR-4.1.1: Class `CopyMask` extends `Operation` with no UI parameters.  
+  - TR-4.1.2: `executeOperation(ImagePair pair, Parameters par)` sets `pair.right = copyOf(pair.left);` duplicating the left image into the right pane.  
+  - TR-4.1.3: Title “Copy”, description “Copy: from left image.”  
+
+- **TR-4.2**: **MixMask (external)**  
+  - TR-4.2.1: Include a button “Mix” in the UI that instantiates new `MixMask(this)` from `com.beder.texturearchive.MixMask`.  
+  - TR-4.2.2: Ensure `MixMask` extends `Operation`, provides at least one parameter (e.g. blend ratio), and its `executeOperation` blends `pair.left` and `pair.right` according to that ratio.  
+  - TR-4.2.3: Title and description come from the external class.  
+
+### 5. UI Integration & Workflow
+- **TR-5.1**: `TextureGenius` orchestrates: maintaining a `LayerStack`, the current `ImagePair`, and a "dirty" flag for unapplied changes.  
+- **TR-5.2**: `TextureGUI` builds a Swing `JFrame` with:  
+  - Center: two 512×512 previews (`leftIcon`, `rightIcon`).  
+  - East: operation stack panel from `genius.getStackPanel()`.  
+  - South: buttons for each noise and mask operation.  
+  - North: dynamic configuration panel showing `currentOp.getConfig()`, plus Apply and Save buttons.  
+- **TR-5.3**: Apply previews the effect (`genius.applyCurrent()`), marking dirty.  
+- **TR-5.4**: Save permanently applies (`genius.saveCurrent()`), clears dirty, then prompts for a filename and writes `<name>_left.png` and `<name>_right.png` via `ImageIO.write(...)`, showing an error dialog on failure.  
+
+### 6. Scatter Operation
+- **TR-6.1**: In `TextureGUI.init()`, add a Scatter button next to the other operation buttons. Its action listener must call `addOperation(new ScatterOperation(this));`.
+- **TR-6.2**: In `TextureGUI`, add a Configure Scatter button that opens a modal dialog. This dialog must show sprite previews with Weight fields and a Save button to persist them; once saved, the Scatter operation’s Generate button becomes enabled.
+
+---
+
+These requirements provide a comprehensive foundation for the development of the Textures application, ensuring clarity in functionality and expected behavior without delving into implementation details.
