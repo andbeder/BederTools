@@ -166,13 +166,25 @@ public class TextureGUI implements Redrawable {
      * Called by button action listeners to create a new operation (layer)
      * @param o
      */
+    /**
+     * Inserts a new operation into the stack.  If the current stack entry has
+     * unapplied changes, it is first saved so that the new operation can be
+     * appended correctly.  This allows buttons like "Copy" to work even when
+     * the previous step has only been generated but not explicitly saved by the
+     * user.
+     */
     private void addOperation(Operation op) {
-        if (genius.isClean()) {
-            ImagePair img = genius.addOperation(op);
+        // If the current state is dirty, save the pending operation so that the
+        // stack remains consistent and the new operation has a valid input
+        if (!genius.isClean()) {
+            ImagePair img = genius.saveCurrent();
             applyImage(img);
-            showOptions();
-            frame.repaint();
         }
+
+        ImagePair img = genius.addOperation(op);
+        applyImage(img);
+        showOptions();
+        frame.repaint();
     }
 
     /**
