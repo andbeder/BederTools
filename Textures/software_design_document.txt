@@ -136,17 +136,22 @@ The software is a texture generator that allows users to apply various operation
     - `JFrame dialog`: The dialog window.
     - `List<BufferedImage> uploadedImages`: Stores uploaded sprite images.
     - `Map<BufferedImage, Integer> weights`: The weights for each sprite.
+    - `TextureGUI owner`: Reference to the parent GUI for refreshing state.
 
 - **Methods:**
     - `void initDialog()`: Initializes and displays the dialog.
     - `void saveSpritesAndWeights()`: Saves the uploaded sprites and their weights.
+    - `void onAddSprites()`: Opens a file chooser starting at the last-used directory.
 
 #### SpriteRepository.java
 - **Properties:**
     - `Map<BufferedImage, Integer> spriteWeightMap`: Stores sprites with their weights.
+    - `File lastDirectory`: Remembers the last directory used to load sprites.
 
 - **Methods:**
     - `void addSprite(BufferedImage sprite, int weight)`: Adds a sprite to the collection.
+    - `void setLastDirectory(File dir)`: Update the last-used sprite directory.
+    - `File getLastDirectory()`: Retrieve the stored directory.
     - `List<BufferedImage> getRandomSprites(int quantity)`: Gets random sprites based on their weights.
 
 ### 10. Noise related classes

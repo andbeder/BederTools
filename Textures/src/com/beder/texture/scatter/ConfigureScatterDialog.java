@@ -1,5 +1,6 @@
 package com.beder.texture.scatter;
 
+import com.beder.texture.TextureGUI;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -11,14 +12,16 @@ import java.util.List;
 
 public class ConfigureScatterDialog extends JDialog {
     private final SpriteRepository repo;
+    private final TextureGUI owner;
     private final JPanel previewPanel;
     private final List<JTextField> weightFields;
     private final List<BufferedImage> loadedSprites;
     private final List<JPanel> spriteSlots;
     private JButton spriteSaveButton;
 
-    public ConfigureScatterDialog(JFrame parent) {
+    public ConfigureScatterDialog(TextureGUI owner, JFrame parent) {
         super(parent, "Configure Scatter Sprites", true);
+        this.owner = owner;
         repo = SpriteRepository.getInstance();
 
         // Initialize collections and preview panel
@@ -94,10 +97,15 @@ public class ConfigureScatterDialog extends JDialog {
     private void onAddSprites() {
         JFileChooser chooser = new JFileChooser();
         chooser.setMultiSelectionEnabled(true);
+        File last = repo.getLastDirectory();
+        if (last != null) {
+            chooser.setCurrentDirectory(last);
+        }
         chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
             "Image files", ImageIO.getReaderFileSuffixes()
         ));
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            repo.setLastDirectory(chooser.getCurrentDirectory());
             for (File f : chooser.getSelectedFiles()) {
                 try {
                     BufferedImage img = ImageIO.read(f);
@@ -151,6 +159,7 @@ public class ConfigureScatterDialog extends JDialog {
                 repo.addSprite(loadedSprites.get(i), w);
             }
             dispose();
+            owner.showOptions();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(
                 this,
