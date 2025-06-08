@@ -142,6 +142,7 @@ The software is a texture generator that allows users to apply various operation
     - `void initDialog()`: Initializes and displays the dialog.
     - `void saveSpritesAndWeights()`: Saves the uploaded sprites and their weights.
     - `void onAddSprites()`: Opens a file chooser starting at the last-used directory.
+    - `void onAddFour()`: Loads one image, splits it into four equal sprites and adds them with default weights.
 
 #### SpriteRepository.java
 - **Properties:**
