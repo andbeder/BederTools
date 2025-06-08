@@ -35,9 +35,21 @@ public class LayerStack {
 		thisPanel.add(stackPanel);
 	}
 	
-	public JPanel getStackPanel() {
-		return thisPanel;
-	}
+        public JPanel getStackPanel() {
+                return thisPanel;
+        }
+
+        /** Clear all layers from the stack and reset the pointer. */
+        public void clear() {
+                stack.clear();
+                curPtr = -1;
+                buildStackPanel();
+        }
+
+        /** Returns a copy of the current layer list. */
+        public java.util.List<Layer> getLayers() {
+                return new ArrayList<>(stack);
+        }
 	
 	/***
 	 *  Rebuilds all of the stack tiles on the UI
