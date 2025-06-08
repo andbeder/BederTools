@@ -33,7 +33,7 @@ Textures is a Java application that provides functionalities for creating and ma
 - **FR-14**: The system shall support clicking new layers in the stack to redisplay their output images and show their configuration panel.
 
 ### 6. Persistence and Export
-- **FR-15**: Upon saving, the system shall prompt the user for a base filename and save two PNG files, appending `_left.png` and `_right.png` to the chosen name.
+- **FR-15**: Upon saving, the system shall prompt the user for a base filename and save two PNG files, appending `_left.png` and `_right.png` to the chosen name using `TextureGUI.exportCurrentImage(...)`.
 - **FR-16**: The system shall handle file-save errors gracefully by displaying a Swing error dialog with the exception message.
 
 ### 7. Extensibility and Modularity

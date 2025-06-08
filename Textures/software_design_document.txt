@@ -118,6 +118,7 @@ The software is a texture generator that allows users to apply various operation
     - `void init()`: Initializes and displays the GUI and builds the File menu.
     - `void showOptions()`: Displays parameters for the selected operation.
     - `void applyImage(ImagePair current)`: Updates the displayed images based on the current `ImagePair`.
+    - `void exportCurrentImage(File base)`: Writes the current images as `<name>_left.png` and `<name>_right.png`.
     - `int getRes()`: Returns the resolution.
     - Menu actions for New, Open, Save, Save As, and Close call the corresponding `TextureGenius` methods.
 
