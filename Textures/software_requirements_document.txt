@@ -33,7 +33,7 @@ Textures is a Java application that provides functionalities for creating and ma
 - **FR-14**: The system shall support clicking new layers in the stack to redisplay their output images and show their configuration panel.
 
 ### 6. Persistence and Export
-- **FR-15**: Upon saving, the system shall prompt the user for a base filename and save two PNG files, appending `_left.png` and `_right.png` to the chosen name using `TextureGUI.exportCurrentImage(...)`.
+- **FR-15**: Upon saving, the system shall prompt the user for a base filename and save a PNG file named `<name>_right.png` using `TextureGUI.exportCurrentImage(...)`.
 - **FR-16**: The system shall handle file-save errors gracefully by displaying a Swing error dialog with the exception message.
 
 ### 7. Extensibility and Modularity
@@ -144,7 +144,7 @@ Each noise class must:
   - South: buttons for each noise and mask operation.  
   - North: dynamic configuration panel showing `currentOp.getConfig()`, plus Apply and Save buttons.  
 - **TR-5.3**: Apply previews the effect (`genius.applyCurrent()`), marking dirty.  
-- **TR-5.4**: Save permanently applies (`genius.saveCurrent()`), clears dirty, then prompts for a filename and writes `<name>_left.png` and `<name>_right.png` via `ImageIO.write(...)`, showing an error dialog on failure.  
+- **TR-5.4**: Save permanently applies (`genius.saveCurrent()`), clears dirty, then prompts for a filename and writes `<name>_right.png` via `ImageIO.write(...)`, showing an error dialog on failure.
 
 ### 6. Scatter Operation
 - **TR-6.1**: In `TextureGUI.init()`, add a Scatter button next to the other operation buttons. Its action listener must call `addOperation(new ScatterOperation(this));`.

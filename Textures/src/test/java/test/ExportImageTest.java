@@ -28,15 +28,12 @@ public class ExportImageTest {
         File left = new File(base.getParentFile(), name + "_left.png");
         File right = new File(base.getParentFile(), name + "_right.png");
 
-        assertTrue(left.exists());
+        assertFalse(left.exists());
         assertTrue(right.exists());
 
-        BufferedImage limg = ImageIO.read(left);
         BufferedImage rimg = ImageIO.read(right);
-        assertEquals(0xFF00FF00, limg.getRGB(0, 0));
         assertEquals(0xFFFF0000, rimg.getRGB(0, 0));
 
-        left.delete();
         right.delete();
     }
 }

@@ -125,7 +125,7 @@ public class TextureGUI implements Redrawable {
         generateButton = new JButton("Generate");
         saveButton  = new JButton("Save");
         saveButton.addActionListener(e -> {
-            // Apply the current operation and then export the images
+            // Apply the current operation and then export the final image
             ImagePair img = genius.saveCurrent();
             applyImage(img);
 
@@ -299,13 +299,12 @@ public class TextureGUI implements Redrawable {
     }
 
     /**
-     * Export the current left and right images using the provided base file.
+     * Export the current right image using the provided base file.
+     * The resulting file will be named <code>&lt;base&gt;_right.png</code>.
      */
     public void exportCurrentImage(java.io.File base) throws IOException {
         String name = base.getName().replaceFirst("(\\.[^.]+)?$", "");
-        java.io.File leftFile  = new java.io.File(base.getParentFile(), name + "_left.png");
         java.io.File rightFile = new java.io.File(base.getParentFile(), name + "_right.png");
-        javax.imageio.ImageIO.write(curImage.left,  "png", leftFile);
         javax.imageio.ImageIO.write(curImage.right, "png", rightFile);
     }
 
