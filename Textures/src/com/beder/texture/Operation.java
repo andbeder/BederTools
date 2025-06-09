@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.JCheckBox;
 
 public abstract class Operation implements Comparable<Operation> {
         private Parameters param;
@@ -23,7 +24,7 @@ public abstract class Operation implements Comparable<Operation> {
         private Map<String, Component> controls;
         /** Text field used when a SEED parameter is added. */
         protected JTextField seedField;
-	protected enum CONTROL_TYPE {INT, DOUBLE, SLIDER, SEED};
+        protected enum CONTROL_TYPE {INT, DOUBLE, SLIDER, SEED, BOOLEAN};
 	
 	public Operation(Redrawable redraw){
 		this.redraw = redraw;
@@ -46,18 +47,24 @@ public abstract class Operation implements Comparable<Operation> {
 			break;
             case SLIDER:
                 JSlider slider = new JSlider(0, 100, (int) def);
-	        slider.setMajorTickSpacing(20);
-	        slider.setMinorTickSpacing(5);
-	        slider.setPaintTicks(true);
-	        slider.setPaintLabels(true);
-	        controls.put(name, slider);
-	        controlPanel.add(slider);
-	        break;
-                case SEED:
-                    seedField = new JTextField(String.format("%d", (long)def), 8);
-                    controls.put(name, seedField);
-                    controlPanel.add(seedField);
-                    JButton randomSeedButton = new JButton("Random");
+                slider.setMajorTickSpacing(20);
+                slider.setMinorTickSpacing(5);
+                slider.setPaintTicks(true);
+                slider.setPaintLabels(true);
+                controls.put(name, slider);
+                controlPanel.add(slider);
+                break;
+            case BOOLEAN:
+                JCheckBox cb = new JCheckBox();
+                cb.setSelected(def != 0);
+                controls.put(name, cb);
+                controlPanel.add(cb);
+                break;
+            case SEED:
+                seedField = new JTextField(String.format("%d", (long)def), 8);
+                controls.put(name, seedField);
+                controlPanel.add(seedField);
+                JButton randomSeedButton = new JButton("Random");
                     randomSeedButton.addActionListener(e -> {
                         String newSeed = String.valueOf(new Random().nextInt(Integer.MAX_VALUE));
                         seedField.setText(newSeed);
@@ -78,13 +85,16 @@ public abstract class Operation implements Comparable<Operation> {
 	        String name = entry.getKey();
 	        Component c = entry.getValue();
 	        try {
-	            if (c instanceof JTextField) {
-	                JTextField tf = (JTextField)c;
-	                param.put(name, Double.parseDouble(tf.getText()));
-	            } else if (c instanceof JSlider) {
-	                JSlider s = (JSlider)c;
-	                param.put(name, (double)s.getValue());
-	            }
+                    if (c instanceof JTextField) {
+                        JTextField tf = (JTextField)c;
+                        param.put(name, Double.parseDouble(tf.getText()));
+                    } else if (c instanceof JSlider) {
+                        JSlider s = (JSlider)c;
+                        param.put(name, (double)s.getValue());
+                    } else if (c instanceof JCheckBox) {
+                        JCheckBox cb = (JCheckBox)c;
+                        param.put(name, cb.isSelected() ? 1.0 : 0.0);
+                    }
 	        } catch (NumberFormatException e) {
 	            System.err.println("Invalid input for parameter: " + name);
 	        }

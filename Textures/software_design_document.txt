@@ -127,10 +127,18 @@ The software is a texture generator that allows users to apply various operation
 - **Properties:**
     - `List<BufferedImage> sprites`: Stores the user-provided sprite images.
     - `Map<BufferedImage, Integer> weights`: Maps each sprite to its weight.
+    - `OpenSimplex2S noise`: Generates noise for AO shading.
+
+  When the **AO** checkbox is selected, the following parameters modify the output:
+    - `Radius`: Blur radius for shadow spreading (default 8).
+    - `Depth`: Intensity multiplier for the darkening effect (default 0.01).
+    - `Scale`: Scale factor for the simplex noise mask (default 0.5).
+    - `Threshold`: Minimum noise value for shadow application (default 0.5).
 
 - **Methods:**
     - `void openConfigDialog()`: Opens a dialog for configuring scatter parameters and uploading sprites.
     - `ImagePair executeOperation(ImagePair input, Parameters par)`: Executes the scatter operation based on the input and par.
+    - `BufferedImage blur(BufferedImage img, int radius)`: Utility for Gaussian blur when AO is enabled.
     
 #### ConfigureScatterDialog.java
 - **Properties:**
