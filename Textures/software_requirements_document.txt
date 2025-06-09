@@ -61,6 +61,7 @@ Textures is a Java application that provides functionalities for creating and ma
     4. Toroidal Wrapping: any portion of a pasted sprite crossing an edge reappears on the opposite side.
   - **FR-21.6**: The Add Sprite file chooser shall open in the directory used during the previous sprite load session.
   - **FR-21.7**: The configuration dialog shall provide an "Add 4" button that loads one image and splits it into four sprites automatically.
+  - **FR-21.8**: The Scatter operation shall include an optional **AO** mode. When enabled, additional parameters (Radius, Depth, Scale, Threshold) become available and the operation produces an Ambient Occlusion mask by darkening pixels around each sprite using a blurred Simplex noise pattern.
 
 ### 10. File Menu
 - **FR-22**: The application shall provide a menu bar with a **File** dropdown.
