@@ -2,14 +2,13 @@ package com.beder.util;
 
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import org.eclipse.jgit.ignore.IgnoreNode;
+import org.eclipse.jgit.ignore.IgnoreNode.MatchResult;
 
 public class JavaFilePackager {
 
@@ -26,19 +25,22 @@ public class JavaFilePackager {
         ".xml"          // meta-XML, e.g. -meta.xml
     ));
 
+    // helper that reads all .gitignore files and applies them
+    private static final GitIgnoreMatcher gitIgnore = new GitIgnoreMatcher();
+
     public static void main(String[] args) {
-        // Use native look and feel
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) { }
 
         List<File> sourceFiles = new ArrayList<>();
         List<File> roots       = new ArrayList<>();
 
-        // 1) Build list of roots & gather files from args or chooser:
+        // 1) Build list of roots & gather files
         if (args.length > 0) {
             File input = new File(args[0]);
-            if (input.isFile() && matchesAllowed(input)) {
+            if (input.isFile() && shouldInclude(input)) {
                 sourceFiles.add(input);
                 roots.add(input.getParentFile());
             }
@@ -49,14 +51,16 @@ public class JavaFilePackager {
         } else {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Select Files and/or Folders");
-            chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+            chooser.setFileSelectionMode(
+                JFileChooser.FILES_AND_DIRECTORIES);
             chooser.setMultiSelectionEnabled(true);
-            if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) {
+            if (chooser.showOpenDialog(null)
+                != JFileChooser.APPROVE_OPTION) {
                 System.exit(0);
             }
             for (File f : chooser.getSelectedFiles()) {
                 if (!f.exists()) continue;
-                if (f.isFile() && matchesAllowed(f)) {
+                if (f.isFile() && shouldInclude(f)) {
                     sourceFiles.add(f);
                     roots.add(f.getParentFile());
                 } else if (f.isDirectory()) {
@@ -66,56 +70,54 @@ public class JavaFilePackager {
             }
         }
 
-        // remove duplicate roots, preserve insertion order
-        Set<File> uniqueRoots = new LinkedHashSet<>(roots);
+        // Dedupe roots
+        Set<File> uniq = new LinkedHashSet<>(roots);
         roots.clear();
-        roots.addAll(uniqueRoots);
+        roots.addAll(uniq);
 
-        // 2) Determine output file
+        // 2) Determine output
         File outputFile;
         if (args.length > 1) {
             outputFile = new File(args[1]);
         } else {
             JFileChooser saver = new JFileChooser();
             saver.setDialogTitle("Save Packaged File");
-            saver.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if (saver.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
+            saver.setFileSelectionMode(
+                JFileChooser.FILES_ONLY);
+            if (saver.showSaveDialog(null)
+                != JFileChooser.APPROVE_OPTION) {
                 System.exit(0);
             }
             outputFile = saver.getSelectedFile();
         }
 
-        // 3) Package files and write out result
+        // 3) Package and write
         try {
-            String packagedContent = packageFiles(sourceFiles, roots);
-            try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
-                writer.print(packagedContent);
+            String out = packageFiles(sourceFiles, roots);
+            try (PrintWriter w = new PrintWriter(
+                    new FileWriter(outputFile))) {
+                w.print(out);
             }
             System.out.println("Packaged " + sourceFiles.size()
-                               + " file(s) into " + outputFile.getAbsolutePath());
+                + " file(s) into " + outputFile.getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("Error packaging files: " + e.getMessage());
+            System.err.println("Error packaging files: "
+                + e.getMessage());
         }
     }
 
-    /**
-     * Packages all files in the given list (with their respective roots) into a single
-     * formatted string. Each file is preceded by its relative path (computed against
-     * the deepest matching root) and enclosed in code fences.
-     *
-     * @param sourceFiles List of files to include in the package
-     * @param roots       List of root directories used to compute relative paths
-     * @return A single String containing the packaged content of all files
-     * @throws IOException If reading any file’s contents fails
-     */
-    public static String packageFiles(List<File> sourceFiles, List<File> roots) throws IOException {
+    public static String packageFiles(
+            List<File> sourceFiles,
+            List<File> roots) throws IOException {
         StringBuilder sb = new StringBuilder();
 
         for (File f : sourceFiles) {
             String relPath = computeRelativePath(f, roots);
             sb.append("**File: ").append(relPath).append("**\n");
             sb.append("```\n");
-            List<String> lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+            List<String> lines =
+                Files.readAllLines(f.toPath(),
+                                  StandardCharsets.UTF_8);
             for (String line : lines) {
                 sb.append(line).append("\n");
             }
@@ -125,64 +127,44 @@ public class JavaFilePackager {
         return sb.toString();
     }
 
-    /**
-     * Convenience method for packaging everything under a single directory.
-     * Recursively gathers all allowed files under 'dir', then calls packageFiles().
-     *
-     * @param dir Root directory to package
-     * @return A single String containing the packaged content of all files under 'dir'
-     * @throws IOException If reading any file’s contents fails
-     */
-    public static String packageFiles(File dir) throws IOException {
-        if (!dir.isDirectory()) {
-            throw new IllegalArgumentException("Expected a directory, but received: " + dir.getAbsolutePath());
-        }
-
-        List<File> sourceFiles = new ArrayList<>();
-        gatherFiles(dir, sourceFiles);
-        List<File> roots = Collections.singletonList(dir);
-
-        return packageFiles(sourceFiles, roots);
-    }
-
-    /** Returns true if this file’s name ends with one of the allowed extensions */
-    private static boolean matchesAllowed(File f) {
+    private static boolean shouldInclude(File f) {
+        // skip if not one of the allowed extensions
         String name = f.getName().toLowerCase(Locale.ROOT);
-        for (String ext : ALLOWED_EXTENSIONS) {
-            if (name.endsWith(ext)) {
-                return true;
-            }
-        }
-        return false;
+        boolean extOk = ALLOWED_EXTENSIONS.stream()
+            .anyMatch(name::endsWith);
+        if (!extOk) return false;
+
+        // skip if gitIgnore says so
+        return !gitIgnore.isIgnored(f.toPath());
     }
 
-    /**
-     * Recursively scans dir for files whose extension is in ALLOWED_EXTENSIONS.
-     */
-    private static void gatherFiles(File dir, List<File> out) {
+    private static void gatherFiles(File dir,
+                                    List<File> out) {
         File[] kids = dir.listFiles();
         if (kids == null) return;
         for (File f : kids) {
+            Path p = f.toPath();
+            if (gitIgnore.isIgnored(p)) {
+                // skip ignored files *and* entire ignored dirs
+                continue;
+            }
             if (f.isDirectory()) {
                 gatherFiles(f, out);
-            } else if (f.isFile() && matchesAllowed(f)) {
+            } else if (shouldInclude(f)) {
                 out.add(f);
             }
         }
     }
 
-    /**
-     * Given a file and a list of root directories, pick the deepest root
-     * that is a prefix of the file’s path, and relativize against it.
-     * If none match, just return file.getName().
-     */
-    private static String computeRelativePath(File file, List<File> roots) {
+    private static String computeRelativePath(
+            File file, List<File> roots) {
         Path filePath = file.toPath().toAbsolutePath();
         Path bestRoot = null;
         int   bestDepth = -1;
         for (File r : roots) {
             Path rp = r.toPath().toAbsolutePath();
-            if (filePath.startsWith(rp) && rp.getNameCount() > bestDepth) {
+            if (filePath.startsWith(rp)
+                && rp.getNameCount() > bestDepth) {
                 bestDepth = rp.getNameCount();
                 bestRoot  = rp;
             }
@@ -191,6 +173,53 @@ public class JavaFilePackager {
             return bestRoot.relativize(filePath).toString();
         } else {
             return file.getName();
+        }
+    }
+
+    /**
+     * Helper that loads .gitignore files and evaluates whether a path
+     * should be ignored according to Git’s rules.
+     */
+    private static class GitIgnoreMatcher {
+        private final Map<Path, IgnoreNode> cache = new HashMap<>();
+
+        public boolean isIgnored(Path path) {
+            try {
+                // walk up from the file’s parent to the FS root
+                Path dir = path.getParent();
+                while (dir != null) {
+                    Path ignoreFile = dir.resolve(".gitignore");
+                    IgnoreNode node = cache.computeIfAbsent(
+                        ignoreFile,
+                        p -> {
+                            if (Files.exists(p)) {
+                                IgnoreNode n = new IgnoreNode();
+                                try (InputStream in =
+                                    Files.newInputStream(p)) {
+                                    n.parse(in);
+                                } catch (IOException ignored) {}
+                                return n;
+                            }
+                            return null;
+                        });
+                    if (node != null) {
+                        // path relative to the .gitignore’s directory
+                        Path rel = dir.relativize(path);
+                        MatchResult res = node.isIgnored(
+                            rel.toString(), Files.isDirectory(path));
+                        if (res == MatchResult.IGNORED) {
+                            return true;
+                        } else if (res == MatchResult.NOT_IGNORED) {
+                            return false;
+                        }
+                        // else: UNKNOWN → keep climbing
+                    }
+                    dir = dir.getParent();
+                }
+            } catch (IOException e) {
+                // on error, default to “not ignored”
+            }
+            return false;
         }
     }
 }

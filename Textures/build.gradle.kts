@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.org.locationtech.jts.jts.core)
     implementation("com.miglayout:miglayout-swing:5.3")
     implementation("org.json:json:20231013")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.8.0.202310180740-r")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
@@ -40,9 +41,6 @@ application {
   mainClass.set("com.beder.texture.TextureGenius")
 }
 
-tasks.named<JavaExec>("run") {
-  classpath += files("$projectDir/bin")
-}
 
 sourceSets {
     main {
